@@ -215,8 +215,9 @@
       for (var i = 0; i < j; i++) q = LC.belief.post(q, SHUFFLE[i], SAYS);
       return q;
     }
+    // a badge keeps its number while it fades out (popBadge sets the next one)
     function reset() {
-      rows.forEach(function (b, k) { block(k, ''); wire(k, ''); badgeAt(k, 0); b.num.textContent = ''; });
+      rows.forEach(function (b, k) { block(k, ''); wire(k, ''); badgeAt(k, 0); });
       trunkState('');
       outs.forEach(function (p) { p.setAttribute('class', 'cw q-x'); p.style.opacity = 0; });
       chipG.textContent = '';

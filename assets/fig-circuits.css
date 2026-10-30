@@ -29,6 +29,21 @@
 [data-fig="circuits"] .cx-pk { font-size: 14px; fill: var(--muted); }
 [data-fig="circuits"] .cx-pk.on { fill: var(--ink); font-weight: 600; }
 [data-fig="circuits"] .pulse { fill: var(--wire-live); }
+/* a model the circuit did not ask: a pale block in its colour whose name and price stay readable
+   (the shared dim state only lowers the opacity, which leaves white text on a faint fill) */
+[data-fig="circuits"] .station.dim { opacity: 1; }
+/* it switches at once: an eased change passes through mid tones where the text is unreadable */
+[data-fig="circuits"] .station.dim .st-body { stroke-width: 1.5; }
+[data-fig="circuits"] .station.t0.dim .st-body { fill: color-mix(in srgb, var(--cost-0) 8%, var(--paper-hi)); }
+[data-fig="circuits"] .station.t1.dim .st-body { fill: color-mix(in srgb, var(--block-1) 8%, var(--paper-hi)); }
+[data-fig="circuits"] .station.t2.dim .st-body { fill: color-mix(in srgb, var(--cost-2) 8%, var(--paper-hi)); }
+[data-fig="circuits"] .station.t0.dim text { fill: var(--cost-0); }
+[data-fig="circuits"] .station.t1.dim text { fill: var(--block-1); }
+[data-fig="circuits"] .station.t2.dim text { fill: var(--cost-2); }
+/* wires the circuit did not use fade; a model it did not ask sends nothing on, so that wire goes */
+[data-fig="circuits"] .cw.off { opacity: .3; }
+[data-fig="circuits"] .cw.gone { opacity: 0; }
+[data-fig="circuits"].cx-paused .cw.live { animation-play-state: paused; }
 [data-fig="circuits"] .cx-box-b { fill: var(--paper-hi); stroke: var(--wire); stroke-width: 1.5; transition: stroke .25s ease, filter .25s ease; }
 [data-fig="circuits"] .cx-box.on .cx-box-b { stroke: var(--wire-live); stroke-width: 2; filter: drop-shadow(0 0 5px rgba(49,85,235,.35)); }
 [data-fig="circuits"] .cx-box-t { font-family: var(--font-display); font-size: 15px; font-weight: 700; fill: var(--ink); }

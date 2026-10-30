@@ -1,21 +1,23 @@
-/* fig-frontier: the results chart (accuracy against cost, five tasks). */
+/* fig-frontier: the results chart (balanced accuracy against cost, five tasks). */
 
 /* the chart keeps its own size; a shorter max-height would shrink its words */
 [data-fig="frontier"] .fig-svg { position: relative; }
 [data-fig="frontier"] .fig-svg svg { max-height: none; overflow: hidden; }
 
-/* ---- tabs, task line, legend (HTML) ---- */
-[data-fig="frontier"] .fx-ui { margin: 2px 0 10px; }
-[data-fig="frontier"] .fx-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+/* ---- tabs (in the figure head, beside Replay), task line, legend (HTML) ---- */
+[data-fig="frontier"] .fig-head { align-items: flex-start; margin-bottom: 0; }
+[data-fig="frontier"] .fig-head .mini-btn { margin-top: 4px; flex: none; }
+[data-fig="frontier"] .fx-ui { margin: 0 0 8px; }
+[data-fig="frontier"] .fx-tabs { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
 [data-fig="frontier"] .fx-tabs button { font: 500 14.5px/1.2 var(--font-body); color: var(--ink-2); background: var(--paper-hi); border: 1px solid var(--line-2); border-radius: 999px; padding: 7px 15px; cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease; }
 [data-fig="frontier"] .fx-tabs button:hover { border-color: var(--accent); color: var(--ink); }
 [data-fig="frontier"] .fx-tabs button[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
 [data-fig="frontier"] .fx-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-[data-fig="frontier"] .fx-sub { margin: 14px 0 0; font-size: 15.5px; line-height: 1.45; color: var(--ink-2); }
+[data-fig="frontier"] .fx-sub { margin: 12px 0 0; font-size: 15.5px; line-height: 1.45; color: var(--ink-2); }
 [data-fig="frontier"] .fx-sub b { color: var(--ink); font-weight: 600; margin-right: 8px; }
 
-[data-fig="frontier"] .fx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin-top: 10px; font-size: 14px; color: var(--ink-2); line-height: 1.4; }
+[data-fig="frontier"] .fx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin-top: 8px; font-size: 14px; color: var(--ink-2); line-height: 1.4; }
 [data-fig="frontier"] .fx-li { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; transition: opacity .45s ease; }
 [data-fig="frontier"] .fx-li[data-s="lm"] { color: var(--ink); font-weight: 600; }
 [data-fig="frontier"] .fx-li.fx-wait { opacity: .25; }
@@ -38,7 +40,8 @@
 [data-fig="frontier"] .fx-bl .fx-bl-pt { fill: var(--surface); stroke: #9AA2B4; stroke-width: 1.5; }
 [data-fig="frontier"] .fx-bl .fx-bl-bars { display: none; }
 [data-fig="frontier"] .fx-bl-ci line { stroke: var(--ink-2); stroke-width: 1.3; stroke-linecap: round; }
-[data-fig="frontier"] .fx-bl { transition: opacity .2s ease; }
+/* only once the chart is drawn: a transition while it builds would fade the hidden lines out in view */
+[data-fig="frontier"] svg.fx-ready .fx-bl { transition: opacity .2s ease; }
 [data-fig="frontier"] .fx-bl.hl path { stroke: var(--ink-2); stroke-width: 2.2; }
 [data-fig="frontier"] .fx-bl.hl .fx-bl-pt { stroke: var(--ink-2); stroke-width: 2; }
 [data-fig="frontier"] .fx-bl.hl .fx-bl-bars { display: inline; }

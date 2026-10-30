@@ -3,9 +3,11 @@
 /* the figure keeps one unit per CSS pixel; a max-height would shrink its words */
 [data-fig="router"] .fig-svg svg { max-height: none; }
 
-[data-fig="router"] .rt-box { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1.2; transition: stroke .3s ease; }
-[data-fig="router"] .rt-box.lit { stroke: var(--accent); stroke-width: 1.8; }
-[data-fig="router"] .rt-title { font-family: var(--font-display); font-size: 15.5px; font-weight: 600; fill: var(--ink); }
+[data-fig="router"] .rt-box { fill: var(--paper-hi); stroke: var(--wire); stroke-width: 1.5; transition: stroke .3s ease, filter .3s ease; }
+[data-fig="router"] .rt-box.lit { stroke: var(--wire-live); stroke-width: 2; filter: drop-shadow(0 0 5px rgba(49,85,235,.35)); }
+[data-fig="router"] .lc-net line { transition: stroke .25s ease; }
+[data-fig="router"] .lc-net.on line { stroke: var(--wire-live); }
+[data-fig="router"] .rt-title { font-family: var(--font-display); font-size: 15.5px; font-weight: 700; fill: var(--ink); }
 [data-fig="router"] .rt-k { font-size: 14px; fill: var(--muted); }
 [data-fig="router"] .rt-m { font-size: 14px; }
 [data-fig="router"] .rt-v { font-family: var(--font-mono); font-size: 14px; font-weight: 700; fill: var(--ink-2); }
@@ -13,17 +15,28 @@
 [data-fig="router"] .rt-track { fill: var(--line); }
 [data-fig="router"] .rt-fill.q { fill: var(--belief); }
 [data-fig="router"] .rt-fill.c0 { fill: var(--cost-0); }
-[data-fig="router"] .rt-fill.c1 { fill: var(--cost-1); }
+[data-fig="router"] .rt-fill.c1 { fill: var(--block-1); }
 [data-fig="router"] .rt-fill.c2 { fill: var(--cost-2); }
-[data-fig="router"] .rt-pick { fill: rgba(192,138,26,.10); stroke: var(--belief); stroke-width: 1.4; }
+/* the rows of the models the circuit goes on to ask, in the signal blue of the path */
+[data-fig="router"] .rt-pick { fill: rgba(49,85,235,.08); stroke: var(--wire-live); stroke-width: 1.4; }
 
-[data-fig="router"] .rt-wire { fill: none; stroke: var(--line-2); stroke-width: 1.6; }
-[data-fig="router"] .rt-path { fill: none; stroke: var(--belief); stroke-width: 3; stroke-linecap: round; }
+/* the circuit's path: a wire that draws in solid, then carries the moving dashes */
+[data-fig="router"] .cw.rt-path { stroke: var(--wire-live); stroke-width: 3; }
+[data-fig="router"].lc-paused .cw.live { animation-play-state: paused; }
 [data-fig="router"] .station { transition: none; }   /* the script fades it in; a CSS transition would lag behind */
-[data-fig="router"] .station.on .st-body { stroke: var(--belief); stroke-width: 2.4; }
 [data-fig="router"] .rt-note { font-size: 14px; fill: var(--muted); }
-[data-fig="router"] .rt-spent { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--belief-ink); }
+
+/* the prediction, as in the circuits figure */
+[data-fig="router"] .rt-pred-b { fill: var(--navy); }
+[data-fig="router"] .rt-pred-t { font-size: 14px; fill: #C7D5FF; }
+[data-fig="router"] .rt-pred-v { font-family: var(--font-display); font-size: 17px; font-weight: 800; letter-spacing: .03em; fill: #FFFFFF; }
+
+/* readouts: a label, the amount in bold, the unit */
+[data-fig="router"] .rt-ro { font-size: 15px; }
+[data-fig="router"] .rt-ro .k { font-family: var(--font-display); font-weight: 600; fill: var(--ink-2); }
+[data-fig="router"] .rt-ro .v { font-family: var(--font-display); font-weight: 800; fill: var(--ink); }
+[data-fig="router"] .rt-ro .u { font-size: 14px; fill: var(--muted); }
+[data-fig="router"] .rt-ro.rt-blind .v { fill: var(--ink-2); }
 
 [data-fig="router"] .rt-rule { stroke: var(--line); stroke-width: 1; }
-[data-fig="router"] .rt-blind-k, [data-fig="router"] .rt-blind { font-size: 14px; fill: var(--muted); }
-[data-fig="router"] .rt-blind-v { font-family: var(--font-mono); font-size: 15px; fill: var(--ink-2); }
+[data-fig="router"] .rt-blind-k { font-family: var(--font-display); font-size: 14px; font-weight: 600; fill: var(--muted); }

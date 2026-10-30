@@ -4,7 +4,8 @@
 /* the questions above the figure: while it plays, the one being asked is in full ink.
    Without script, or with reduced motion, all three stay in full ink. */
 #question .ask span { transition: color .45s ease; }
-#question .ask.q-live span { color: #8E97AB; }
+/* muted, still readable: about 3.2:1 on the screen's grey, the floor for text this large */
+#question .ask.q-live span { color: #7F89A1; }
 #question .ask.q-live span.on { color: var(--ink); }
 
 /* a clean white board under the questions, on the screen's grey */
@@ -13,6 +14,16 @@
 .q-fig .fig-head { min-height: 28px; margin-bottom: 4px; }
 /* drawn at one unit per pixel, so no height cap; a narrow drawing in a wider figure sits centred */
 [data-fig="question"] .fig-svg svg { max-height: none; margin: 0 auto; }
+
+/* the models left out at the end: a pale tint with the name in the block's colour.
+   Fading the whole block (as elsewhere) would leave white text on a pale block. */
+.fig[data-fig="question"] .station .st-body { transition: stroke .3s ease, filter .3s ease, fill-opacity .35s ease, stroke-opacity .35s ease; }
+.fig[data-fig="question"] .station .st-name { transition: fill .35s ease; }
+.fig[data-fig="question"] .station.dim { opacity: 1; }
+.fig[data-fig="question"] .station.dim .st-body { fill-opacity: .1; stroke-opacity: .4; }
+.fig[data-fig="question"] .station.t0.dim .st-name { fill: var(--cost-0); }
+.fig[data-fig="question"] .station.t1.dim .st-name { fill: var(--block-1); }
+.fig[data-fig="question"] .station.t2.dim .st-name { fill: var(--cost-2); }
 
 /* wires: a solid line once a model has been asked, dashes while the signal runs */
 [data-fig="question"] .cw.on { stroke: var(--wire-live); stroke-width: 3; }
@@ -32,12 +43,14 @@
 [data-fig="question"] .q-end { font-size: 14px; fill: var(--muted); }
 
 /* the prediction: an empty slot until the circuit stops, then the navy block */
-[data-fig="question"] .q-slot { fill: none; stroke: var(--line-2); stroke-width: 1.5; stroke-dasharray: 5 5; }
+[data-fig="question"] .q-slot { fill: none; stroke: var(--line-2); stroke-width: 1.5; stroke-dasharray: 5 5; transition: opacity .35s ease; }
 [data-fig="question"] .q-pred-b { fill: var(--navy); opacity: 0; transition: opacity .35s ease; }
 [data-fig="question"] .q-pred-k { font-size: 14px; fill: var(--muted); transition: fill .35s ease; }
 [data-fig="question"] .q-pred-v { font-family: var(--font-display); font-size: 17px; font-weight: 800; fill: #FFFFFF; opacity: 0; transition: opacity .35s ease; }
 [data-fig="question"] .q-pred.on .q-pred-b, [data-fig="question"] .q-pred.on .q-pred-v { opacity: 1; }
 [data-fig="question"] .q-pred.on .q-pred-k { fill: #C7D5FF; }
+/* the slot's dashes would otherwise fringe the navy block */
+[data-fig="question"] .q-pred.on .q-slot { opacity: 0; }
 
 /* between loops, what the last pass added fades out (over the inline opacities of the pops) */
 [data-fig="question"] .q-x { transition: opacity .3s ease; }

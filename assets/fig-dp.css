@@ -1,4 +1,4 @@
-/* fig-dp: the best circuit as a tree, with a slider for the price of a query. */
+/* fig-dp: the best circuit as a tree, with a slider for the circuit setting. */
 
 /* the tree keeps its own size; a shorter max-height would shrink its words */
 [data-fig="dp"] .fig-svg svg { max-height: none; }
@@ -19,26 +19,32 @@
 [data-fig="dp"] .dpx-ticks i { display: block; width: 8px; height: 8px; margin: 0 -4px; border-radius: 50%; background: var(--surface); border: 2px solid var(--line-2); box-sizing: border-box; }
 [data-fig="dp"] .dpx-ends { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); margin-top: 2px; }
 
+/* readouts, as in the circuits figure: a label, the value in bold, then its unit */
 [data-fig="dp"] .dpx-read { display: flex; flex-wrap: wrap; gap: 8px 36px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
-[data-fig="dp"] .dpx-stat { display: flex; align-items: baseline; gap: 10px; }
-[data-fig="dp"] .dpx-stat .l { font-size: 15px; color: var(--ink-2); }
-[data-fig="dp"] .dpx-stat b { font: 700 18px var(--font-mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+[data-fig="dp"] .dpx-stat { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+[data-fig="dp"] .dpx-stat .l { font: 600 15px/1.4 var(--font-display); color: var(--ink-2); }
+[data-fig="dp"] .dpx-stat b { font: 800 17px/1.4 var(--font-display); color: var(--ink); font-variant-numeric: tabular-nums; }
+[data-fig="dp"] .dpx-stat .u { font-size: 14px; color: var(--muted); margin-left: -3px; }
 
-/* ---- the tree (SVG) ---- */
-[data-fig="dp"] .dpx-edge { fill: none; stroke: var(--line-2); stroke-width: 1.8; stroke-linejoin: round; }
-[data-fig="dp"] .dpx-edge.on { stroke: var(--belief); stroke-width: 4; stroke-linecap: round; }
+/* ---- the tree (SVG): wires, solid model blocks, predictions ---- */
+[data-fig="dp"] .cw.dpx-edge { stroke-width: 2; }
+/* the hard prompt's path: a solid signal while it draws in, then the moving dashes */
+[data-fig="dp"] .cw.dpx-edge.on { stroke: var(--wire-live); stroke-width: 3.5; }
+[data-fig="dp"].lc-paused .cw.live { animation-play-state: paused; }
 [data-fig="dp"] .dpx-ans { font-size: 15px; fill: var(--muted); }
-[data-fig="dp"] .dpx-ans.on { fill: var(--belief-ink); font-weight: 600; }
-[data-fig="dp"] .dpx-leaf rect { fill: var(--surface-2); stroke: var(--line-2); stroke-width: 1.2; transition: stroke .3s ease, fill .3s ease; }
-[data-fig="dp"] .dpx-leaf .p { font-size: 14px; fill: var(--muted); }
-[data-fig="dp"] .dpx-leaf .v { font-size: 15px; font-weight: 600; fill: var(--ink); }
-[data-fig="dp"] .dpx-leaf.on rect { fill: var(--paper-hi); stroke: var(--belief); stroke-width: 2.4; }
-[data-fig="dp"] .station.on .st-body { stroke: var(--belief); stroke-width: 2.4; }
-[data-fig="dp"] .station.ghost { opacity: .6; }
-[data-fig="dp"] .station.ghost .st-body { stroke-dasharray: 4 4; fill: var(--surface); }
-[data-fig="dp"] .dpx-spent { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--belief-ink); }
+[data-fig="dp"] .dpx-ans.on { font-family: var(--font-display); fill: var(--wire-live); font-weight: 700; }
+[data-fig="dp"] .dpx-leaf rect { fill: var(--paper-hi); stroke: var(--wire); stroke-width: 1.5; transition: fill .3s ease, stroke .3s ease; }
+[data-fig="dp"] .dpx-leaf .p { font-size: 14px; fill: var(--muted); transition: fill .3s ease; }
+[data-fig="dp"] .dpx-leaf .v { font-family: var(--font-display); font-size: 15px; font-weight: 800; fill: var(--navy); transition: fill .3s ease; }
+/* the prediction this prompt reaches: the navy block */
+[data-fig="dp"] .dpx-leaf.on rect { fill: var(--navy); stroke: var(--navy); }
+[data-fig="dp"] .dpx-leaf.on .p { fill: #C7D5FF; }
+[data-fig="dp"] .dpx-leaf.on .v { fill: #FFFFFF; }
+[data-fig="dp"] .dpx-spent { font-family: var(--font-display); font-size: 15px; font-weight: 800; fill: var(--ink); }
 
 @media (max-width: 600px) {
-  [data-fig="dp"] .dpx-read { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  [data-fig="dp"] .dpx-stat { flex-direction: column; gap: 2px; }
+  [data-fig="dp"] .dpx-ctl { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  [data-fig="dp"] .dpx-k { padding-top: 0; }
+  [data-fig="dp"] .dpx-read { display: grid; grid-template-columns: auto auto; justify-content: start; gap: 12px 28px; }
+  [data-fig="dp"] .dpx-stat .l { flex-basis: 100%; }
 }

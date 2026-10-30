@@ -14,18 +14,18 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.css" integrity="sha384-WwGtaC6ywCHxA5cstpj/3+xIZvTez8dq2IcBQaXRkenHZ7FVVq1ZROtURwfbtTlG" crossorigin="anonymous" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.js" integrity="sha384-a1WQdjRj162i159OYq041X6I4K8NenkrI09LlPmiHg0YOb7CR+wJOraXwK9abpnE" crossorigin="anonymous"></script>
 
-<link rel="stylesheet" href="./assets/site.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-cover.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-uses.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-noisy.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-question.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-circuits.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-step.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-dp.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-router.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-glue.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-frontier.css?v=7" />
-<link rel="stylesheet" href="./assets/authors.css?v=7" />
+<link rel="stylesheet" href="./assets/site.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-cover.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-uses.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-noisy.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-question.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-circuits.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-step.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-dp.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-router.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-glue.css?v=8" />
+<link rel="stylesheet" href="./assets/fig-frontier.css?v=8" />
+<link rel="stylesheet" href="./assets/authors.css?v=8" />
 </head>
 <body>
 
@@ -165,7 +165,7 @@
       <p class="lede">Two models can give different answers to the same question, and so can one model asked twice. Every answer costs money.</p>
       <p>We treat each model, with its prompt and settings, as an instrument: each call is a noisy measurement of the true label, at a price.</p>
     </div>
-    <figure class="fig" data-fig="noisy" aria-label="One prompt is sent four times: twice to Gemma 4 E4B, once to the decision model Jev and once to Gemma 4 31B. Two calls answer harmful and two answer safe.">
+    <figure class="fig" data-fig="noisy" aria-label="A harmful prompt is sent four times: twice to Gemma 4 E4B ($20 per 1M prompts), once to the decision model Jev ($42) and once to Gemma 4 31B ($90). Two calls say harmful and two say safe. What should we predict?">
       <figcaption class="fig-cap" data-role="cap">Illustrative answers. Gemma 4 E4B gives two different answers when asked twice, and the decision model Jev and Gemma 4 31B disagree. Costs are list prices for one million prompts.</figcaption>
     </figure>
   </div>
@@ -175,7 +175,7 @@
 <section class="screen" id="question" data-title="The question">
   <div class="wrap">
     <p class="ask"><span data-q="1">Which LLMs should we ask?</span><span data-q="2">Should we ask more than one, and in what order?</span><span data-q="3">When should we stop?</span></p>
-    <figure class="fig q-fig" data-fig="question" aria-label="A prompt and a pool of models. First one model is picked, then several in turn, then the circuit stops and predicts."></figure>
+    <figure class="fig q-fig" data-fig="question" aria-label="A prompt, Is this prompt harmful?, and a pool of six models. First one model is picked. Then several are asked in turn, and the order changes once. As answers arrive the chance harmful rises, and the circuit stops before the third model and predicts harmful."></figure>
   </div>
 </section>
 
@@ -187,7 +187,7 @@
       <p class="lede">Combining classifiers is a classic problem in machine learning. Each LLM classifier runs on its own hardware, so we call their combination a circuit.</p>
       <p>Majority voting, routing and cascades are circuits. They differ in which models they ask, in what order, and how they turn the answers into one prediction.</p>
     </div>
-    <figure class="fig" data-fig="circuits" aria-label="Four circuits over the same three models: majority voting, routing, a cascade and LMCircuit. A signal travels from the prompt through the models to a prediction, and the cost is counted.">
+    <figure class="fig" data-fig="circuits" aria-label="Four circuits over the same three models: majority voting, routing, a cascade and LMCircuit. A signal travels from the prompt through the models to a prediction, and a scoreboard compares what each circuit spends.">
       <figcaption class="fig-cap" data-role="cap">Illustrative accuracies. Costs are list prices for one million prompts. All four circuits get the three example prompts right. They differ in what they spend.</figcaption>
     </figure>
   </div>
@@ -230,8 +230,8 @@
       <p class="lede">Each answer changes what the next call is worth, so the choices form a tree. The dynamic program finds the best tree by working backward from the predictions.</p>
       <p>It weighs the cost of one more answer against how much that answer lowers the chance of a mistake. Prioritize accuracy and the circuit asks more. Prioritize cost and it asks less.</p>
     </div>
-    <figure class="fig" data-fig="dp" aria-label="The best circuit drawn as a tree, with a slider from prioritize cost to prioritize accuracy. When cost comes first the circuit predicts at once; as accuracy matters more it asks the small model first and the large one only after answers that disagree. An amber path shows what it does on the hard prompt.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies, costs for one million prompts, and no prompt classifier yet. Each stop on the slider gives a different best tree. The amber path is the one the hard prompt takes.</figcaption>
+    <figure class="fig" data-fig="dp" aria-label="The best circuit drawn as a tree, with a slider from prioritize cost to prioritize accuracy. When cost comes first the circuit predicts at once; as accuracy matters more it asks the small model first and the large one only after answers that disagree. A dashed path shows what it does on the hard prompt.">
+      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies, costs for one million prompts, and no prompt classifier yet. Each stop on the slider gives a different best tree. The dashed path is the one the hard prompt takes, ending in its prediction.</figcaption>
     </figure>
   </div>
 </section>
@@ -255,11 +255,11 @@
   <div class="wrap split fig-wide">
     <div class="copy">
       <h2><span class="hl">LMCircuit</span> is a prompt classifier and a dynamic program</h2>
-      <p class="lede">We fit one model of the prompts, once. For any setting, from prioritize cost to prioritize accuracy, the dynamic program turns it into a circuit.</p>
-      <p>The prompt classifier reads a text embedding of the prompt (Qwen3-Embedding-0.6B) and the answers collected so far. It returns the chance the prompt is harmful and the chance each model answers harmful. It is trained on labelled prompts and recorded model answers. <button class="linkish" data-open="sheet-method">Technical details</button></p>
+      <p class="lede">We fit the prompt classifier once. For any setting, from prioritize cost to prioritize accuracy, the dynamic program turns its estimates into a circuit.</p>
+      <p>The prompt classifier reads a text embedding of the prompt (Qwen3-Embedding-0.6B) and the answers collected so far. It returns the chance the prompt is harmful and the chance each model gets it right. It is trained on labelled prompts and recorded model answers. <button class="linkish" data-open="sheet-method">Technical details</button></p>
     </div>
-    <figure class="fig" data-fig="glue" aria-label="Two panels. Fit once: the prompt and the answers so far enter a small network, which returns the chance the prompt is harmful and the chance each model answers harmful. Generate: for a chosen setting, the dynamic program turns the network's outputs into a circuit for the prompt.">
-      <figcaption class="fig-cap" data-role="cap">The network is fitted once. Changing the setting only reruns the dynamic program.</figcaption>
+    <figure class="fig" data-fig="glue" aria-label="Two panels. Fit once: the prompt and the answers so far (none yet) go into the prompt classifier, which returns a 54% chance that the prompt is harmful and a 58%, 70% and 88% chance that Gemma 4 E4B, Gemma 4 26B and Gemma 4 31B get it right. Pick a setting, get a circuit: the prompt classifier and a setting go into the dynamic program, which returns a circuit for the prompt. Set to prioritize cost, the circuit asks no model and predicts harmful with a 54% chance, for $0 per 1M prompts. Set to prioritize accuracy, it asks Gemma 4 31B, which says harmful, and predicts harmful with a 90% chance, for $90 per 1M prompts.">
+      <figcaption class="fig-cap" data-role="cap">The prompt classifier is fitted once. Changing the setting only reruns the dynamic program. Illustrative numbers; costs are list prices for one million prompts.</figcaption>
     </figure>
   </div>
 </section>
@@ -272,7 +272,7 @@
       <p class="lede">LMCircuit is more accurate than every single model and than eight routing and cascading methods at nearly every budget. Here are five of the seven tasks: four judged by open-weight models and one by decision models.</p>
     </div>
     <figure class="figure fig" data-fig="frontier" id="frontier-fig" aria-label="Balanced accuracy against average cost per item on five tasks, one tab each. Each model is a point; majority voting and eight routing and cascading methods follow; the LMCircuit curve lies above them, with three budget markers.">
-      <figcaption class="fig-cap" data-role="cap">Values read from Figure 4 of the paper, which reports balanced accuracy (the average of the accuracy on each class). Bars are 95% confidence intervals. The three markers show how often LMCircuit calls each model at a low, a medium and a high budget.</figcaption>
+      <figcaption class="fig-cap" data-role="cap">Values read from Figure 4 of the paper, which reports balanced accuracy (the average of the accuracy on each class). Bars are 95% confidence intervals. The three markers show how many calls LMCircuit makes per item, and to which models, at a low, a medium and a high budget.</figcaption>
     </figure>
     <div class="results-links">
       <button class="btn small" data-open="sheet-data">Datasets and models</button>
@@ -444,7 +444,7 @@
     <p class="tabcap"><b>Seven binary classification tasks.</b> On BeaverTails, HealthBench, LMArena and PolitiCAUSE we query the instruments ourselves with each dataset's official instruction and the model's default decoding; the Gemma models answer directly and the Qwen3 models reason before answering. On AgentJudgeBench, BIG-Bench Hard and Decision Index we use the answers each benchmark recorded, priced at the model's API price (AgentJudgeBench) or at $0.01 per million tokens per billion active parameters (BIG-Bench Hard, Decision Index). Each dataset is split into five folds, keeping prompts that share a source together; each fold serves once as the test set.</p>
     <div class="table-scroll" style="margin-top:22px">
       <table class="res-table">
-        <thead><tr><th scope="col">$ / M tokens</th><th>Gemma 2B</th><th>Gemma 4B</th><th>Gemma 26B</th><th>Gemma 31B</th><th>Qwen 4B</th><th>Qwen 8B</th><th>Qwen 32B</th><th>Granite 3B</th><th>OSS 20B</th><th>OSS 120B</th></tr></thead>
+        <thead><tr><th scope="col">$ / M tokens</th><th>Gemma 4 E2B</th><th>Gemma 4 E4B</th><th>Gemma 4 26B</th><th>Gemma 4 31B</th><th>Qwen3 4B</th><th>Qwen3 8B</th><th>Qwen3 32B</th><th>Granite 4.2 3B</th><th>gpt-oss-20b</th><th>gpt-oss-120b</th></tr></thead>
         <tbody>
           <tr><td>Input</td><td>0.04</td><td>0.02</td><td>0.042</td><td>0.09</td><td>0.03</td><td>0.20</td><td>0.08</td><td>0.03</td><td>0.018</td><td>0.03</td></tr>
           <tr><td>Output</td><td>0.08</td><td>0.10</td><td>0.22</td><td>0.34</td><td>0.03</td><td>0.20</td><td>0.28</td><td>0.12</td><td>0.09</td><td>0.17</td></tr>
@@ -483,17 +483,17 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
-<script src="./assets/core.js?v=7" defer></script>
-<script src="./assets/fig-cover.js?v=7" defer></script>
-<script src="./assets/fig-uses.js?v=7" defer></script>
-<script src="./assets/fig-noisy.js?v=7" defer></script>
-<script src="./assets/fig-question.js?v=7" defer></script>
-<script src="./assets/fig-circuits.js?v=7" defer></script>
-<script src="./assets/fig-step.js?v=7" defer></script>
-<script src="./assets/fig-dp.js?v=7" defer></script>
-<script src="./assets/fig-router.js?v=7" defer></script>
-<script src="./assets/fig-glue.js?v=7" defer></script>
-<script src="./assets/fig-frontier.js?v=7" defer></script>
+<script src="./assets/core.js?v=8" defer></script>
+<script src="./assets/fig-cover.js?v=8" defer></script>
+<script src="./assets/fig-uses.js?v=8" defer></script>
+<script src="./assets/fig-noisy.js?v=8" defer></script>
+<script src="./assets/fig-question.js?v=8" defer></script>
+<script src="./assets/fig-circuits.js?v=8" defer></script>
+<script src="./assets/fig-step.js?v=8" defer></script>
+<script src="./assets/fig-dp.js?v=8" defer></script>
+<script src="./assets/fig-router.js?v=8" defer></script>
+<script src="./assets/fig-glue.js?v=8" defer></script>
+<script src="./assets/fig-frontier.js?v=8" defer></script>
 <script>
 document.getElementById('yr').textContent = new Date().getFullYear();
 

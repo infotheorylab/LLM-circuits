@@ -5,9 +5,15 @@
    block in its own way and runs the three example prompts (easy, medium,
    hard) through them: a dashed signal moves along every wire it uses, each
    model it asks shows its answer next to its block, and the readouts count the
-   calls and the cost. The scoreboard under the drawing keeps each circuit's
-   right answers and its cost for one million prompts of each kind, so after
-   the first walk through all four the comparison stays in view.
+   calls and the cost. Once a prompt is answered, the models the circuit did not
+   ask turn pale and the wires it did not use fade.
+
+   The scoreboard under the drawing has one row per circuit: its right answers
+   and its cost for one million prompts of each kind. A row is either empty or
+   shows that circuit's complete result, never a running count: it fills in when
+   the circuit finishes its three prompts, or at once when a tab cuts its walk
+   short. Replay empties the board and walks through all four again. The walk
+   waits while the figure is off screen.
 
    Every outcome is computed here from LC.PROMPTS, LC.belief and LC.dp; no total
    is typed in. With the illustrative numbers in core.js all four circuits get
@@ -30,12 +36,15 @@
   var SURE = .1;               // the cascade stops once the chance harmful is this close to 0 or 1
   var PAD = 2;                 // keeps outer strokes inside the viewBox
   var ST_H = 52, BOX_H = 38, PRED_W = 150, PRED_H = 54, CHIP_H = 28;
-  var MAX_W = 720;             // a wider figure keeps this width
+  var MAX_W = 880;             // wider than the figure ever is (one column under 900 px), so it is never scaled up
   var NET_S = .75;             // the prompt classifier icon at three quarters size, about 40 x 42
   var R = 10;                  // corner radius of the narrow layout's wires
-  /* Pacing in ms. One circuit takes about 4 s, so the first walk reaches
-     LMCircuit about 14 s after the figure comes into view. */
-  var T = { swap: 130, wire: 260, hub: 110, ask: 170, pred: 180, beat: 200, prompt: 380, circuit: 600 };
+  /* Pacing in ms. A signal moves at SPEED px per ms, so a short hop is quick
+     and the long run down the narrow layout's bus is not. Majority voting and
+     routing take about 4.5 s and the cascade about 5.5 s, so the first walk
+     reaches LMCircuit about 15 s after the figure comes into view. */
+  var T = { swap: 90, hub: 70, ask: 130, pred: 130, beat: 100, prompt: 360, circuit: 450 };
+  var SPEED = .85, WIRE_MIN = 100, WIRE_MAX = 300;
 
   function majority(xs) {
     var s = 0;
@@ -62,7 +71,7 @@
         return { groups: [[pick]], predict: P[k].answers[pick], q: null };
       } },
     { name: 'Cascade', key: 'cascade',
-      say: 'Asks the models one at a time, cheapest first, and stops once it is 90% sure.',
+      say: 'Asks the models one at a time, cheapest first, and stops once it is ' + h.pct(1 - SURE) + ' sure.',
       trace: function (k) {
         // no prompt classifier: start at even odds and use each model's overall accuracy
         var q = .5, qs = [q], groups = [];
@@ -84,6 +93,16 @@
   ];
   var MAX_SPEND = 0;           // asking every model on every prompt: the scoreboard's full bar
   M.forEach(function (m) { MAX_SPEND += m.cost * ORDER.length; });
+  // each circuit's complete result over the three prompts, for the scoreboard
+  var RESULTS = CIRCUITS.map(function (c) {
+    var r = { right: 0, of: ORDER.length, cost: 0 };
+    ORDER.forEach(function (k) {
+      var tr = c.trace(k);
+      tr.groups.forEach(function (g) { g.forEach(function (i) { r.cost += M[i].cost; }); });
+      if (tr.predict === P[k].label) r.right++;
+    });
+    return r;
+  });
 
   function quote(k) { return '“' + P[k].text + '”'; }
   /* Rewrap at the narrowest width that keeps the line count, so the last line
@@ -218,8 +237,11 @@
     ORDER.forEach(function (k) { lines = Math.max(lines, h.wrap(cText, quote(k), w - 32, 21)); });
     var cardH = textY + (lines - 1) * 21 + 16;
     cardBody.setAttribute('height', cardH);
+    var cardK = null;
     function setCard(k) {
       var n = ORDER.indexOf(k);
+      cardK = k;
+      cText.style.opacity = 1;     // a run cut short mid-fade must not leave the prompt hidden
       steps.forEach(function (t, i) { t.setAttribute('class', 'cx-pk' + (i === n ? ' on' : '')); });
       balance(cText, quote(k), w - 32);
     }
@@ -392,7 +414,8 @@
       if (!wo) return Promise.resolve();
       wo.live(true);
       gWire.appendChild(wo.el);
-      return h.pulse(gDot, wo.el, T.wire, alive);
+      var ms = Math.max(WIRE_MIN, Math.min(WIRE_MAX, wo.el.getTotalLength() / SPEED));
+      return h.pulse(gDot, wo.el, ms, alive);
     }
     function hubOn(n, on) { (Wr.lit[n] || []).forEach(function (g) { g.classList.toggle('on', on); }); }
 
@@ -424,59 +447,69 @@
     var bHost = document.createElement('div');
     bHost.className = 'cx-board';
     fig.insertBefore(bHost, capEl);
-    var bsvg = h.svgEl('svg', { 'aria-hidden': 'true' }, bHost);
+    // read out whole: the complete results, whatever the drawing shows at the moment
+    var bsvg = h.svgEl('svg', { role: 'img', 'aria-label': 'Right answers and cost for one million prompts of each kind. ' +
+      CIRCUITS.map(function (c, i) { return c.name + ': ' + RESULTS[i].right + ' of ' + RESULTS[i].of + ' right, ' + h.usd(RESULTS[i].cost) + '.'; }).join(' ') }, bHost);
     var board = h.svgEl('g', { transform: 'translate(' + PAD + ',' + PAD + ')' }, bsvg);
     var rows = scoreboard(board);
     bsvg.setAttribute('viewBox', '0 0 ' + W + ' ' + Math.ceil(rows.height + 2 * PAD));
 
     /* One row per circuit: name, right answers and a bar of the cost on one
        line under a header, or (when the bar would get too short) name and right
-       answers, then the bar. */
+       answers, then the bar. A row is drawn complete and kept hidden until
+       show(); its numbers never count up. */
     function scoreboard(g) {
-      var IN = 12, list = [], y0, rowH;
+      var IN = 12, list = [], y0 = 26, rowH;
       var nameW = 0;
       CIRCUITS.forEach(function (c) { nameW = Math.max(nameW, measure(g, c.name, 'cx-bname', 'cx-row cur')); });
       var colR = IN + nameW + 20, colC = colR + measure(g, '3 of 3', 'cx-bnum') + 22;
       var numW = measure(g, h.usd(MAX_SPEND), 'cx-bnum');
       var barMax = Math.min(240, w - IN - numW - 8 - colC);
       var one = barMax >= 70;
-      var headC = 'Cost for 1M of each prompt';
+      var headC = 'Cost for 1M prompts of each kind';
       if (one) {
+        if (colC + measure(g, headC, 'cx-bhead') > w - IN) headC = 'Cost, 1M of each kind';
         if (colC + measure(g, headC, 'cx-bhead') > w - IN) headC = 'Cost, 1M of each';
         h.label(g, colR, 16, 'Right', 'cx-bhead');
         h.label(g, colC, 16, headC, 'cx-bhead');
-        y0 = 26; rowH = 32;
+        rowH = 32;
       } else {
+        if (IN + measure(g, headC, 'cx-bhead') > w - IN) headC = 'Cost, 1M of each kind';
         h.label(g, IN, 16, headC, 'cx-bhead');
-        numW = measure(g, h.usd(MAX_SPEND), 'cx-bnum');
         colC = IN;
         barMax = Math.min(240, w - 2 * IN - numW - 8);
-        y0 = 26; rowH = 54;
+        rowH = 54;
       }
       CIRCUITS.forEach(function (c, i) {
-        var top = y0 + i * rowH;
+        var top = y0 + i * rowH, res = RESULTS[i];
         var rg = h.svgEl('g', { 'class': 'cx-row' }, g);
         h.svgEl('rect', { 'class': 'cx-band', x: 0, y: top + 2, width: w, height: rowH - 4, rx: 9 }, rg);
         var base = !one ? top + 23 : top + rowH / 2 + 5;
         var barY = !one ? top + 40 : top + rowH / 2;
         h.label(rg, IN, base, c.name, 'cx-bname');
-        var right = !one ? h.label(rg, w - IN, base, '', 'cx-bnum', { 'text-anchor': 'end' })
-                           : h.label(rg, colR, base, '', 'cx-bnum');
+        var bw = barMax * res.cost / MAX_SPEND;
         var bar = h.svgEl('rect', { 'class': 'cx-bar', x: colC, y: barY - 5, width: 0, height: 10, rx: 5 }, rg);
-        var num = h.label(rg, colC, !one ? barY + 5 : base, '', 'cx-bnum');
-        var n = 0;
+        var nums = h.svgEl('g', { 'class': 'cx-nums' }, rg);
+        var score = res.right + ' of ' + res.of + (!one ? ' right' : '');
+        if (!one) h.label(nums, w - IN, base, score, 'cx-bnum', { 'text-anchor': 'end' });
+        else h.label(nums, colR, base, score, 'cx-bnum');
+        h.label(nums, colC + bw + (res.cost ? 8 : 0), !one ? barY + 5 : base, h.usd(res.cost), 'cx-bnum');
+        var shown = false, moves = 0;
+        function hide() { moves++; shown = false; bar.setAttribute('width', 0); nums.style.opacity = 0; }
+        hide();
         list.push({
-          reset: function () { bar.setAttribute('width', 0); n = 0; right.textContent = ''; num.textContent = ''; },
-          add: function (k) {
-            n += k;
-            var bw = barMax * n / MAX_SPEND;
-            bar.setAttribute('width', bw);
-            num.setAttribute('x', colC + bw + (n ? 8 : 0));
-            num.textContent = h.usd(n);
-          },
-          score: function (k, of) {
-            right.textContent = k + ' of ' + of + (!one ? ' right' : '');
-            if (!n) num.textContent = h.usd(0);
+          clear: hide,
+          // the complete result: the bar grows to it, the numbers fade in already final
+          show: function (animate) {
+            if (shown) return;
+            shown = true;
+            var id = ++moves;
+            if (!animate) { bar.setAttribute('width', bw); nums.style.opacity = 1; return; }
+            h.tween(520, function (t) {
+              if (id !== moves) return;
+              bar.setAttribute('width', bw * t);
+              nums.style.opacity = Math.min(1, t * 1.6);
+            });
           },
           cur: function (on) { rg.classList.toggle('cur', on); }
         });
@@ -486,8 +519,37 @@
     }
 
     /* ---- playing */
+    // the walk waits while the figure is off screen or the page is hidden
+    var seen = !('IntersectionObserver' in window), waiters = [];
+    function onScreen() { return ctx.reduce || (seen && !document.hidden); }
+    function hold() { return onScreen() ? Promise.resolve() : new Promise(function (r) { waiters.push(r); }); }
+    function wake() {
+      fig.classList.toggle('cx-paused', !onScreen());
+      if (!onScreen()) return;
+      var ws = waiters; waiters = [];
+      ws.forEach(function (f) { f(); });
+    }
+    // a rebuild (new width) replaces the watchers of the drawing it replaces
+    if (fig._cxStop) fig._cxStop();
+    var io = null;
+    if (!seen) {
+      io = new IntersectionObserver(function (es) {
+        var e = es[es.length - 1];
+        seen = e.isIntersecting && e.intersectionRatio > .1;
+        wake();
+      }, { threshold: [0, .1, .2] });
+      io.observe(fig);
+    }
+    document.addEventListener('visibilitychange', wake);
+    fig._cxStop = function () {
+      if (io) io.disconnect();
+      document.removeEventListener('visibilitychange', wake);
+      var ws = waiters; waiters = [];
+      ws.forEach(function (f) { f(); });   // the old runs wake, see their drawing gone and end
+    };
+
     function resetPrompt() {
-      allWires().forEach(function (wo) { wo.live(false); wo.off(false); });
+      allWires().forEach(function (wo) { wo.live(false); wo.off(false); wo.el.classList.remove('gone'); });
       Wr.lit.forEach(function (n, k) { hubOn(k, false); });
       stations.forEach(function (s) { s.st.state(''); s.slot.clear(); });
       predV.textContent = '';
@@ -501,67 +563,78 @@
       rows.forEach(function (r, j) { r.cur(j === i); });
       say.textContent = CIRCUITS[i].say;
       drawCircuit(CIRCUITS[i]);
+      // nothing of the circuit it replaces stays on screen
+      resetPrompt();
+      var q0 = CIRCUITS[i].trace(ORDER[0]).q;
+      readReset(CIRCUITS[i], q0 ? q0[0] : null);
       // the new wiring fades in rather than snapping into place
       h.tween(260, function (t) { gWire.style.opacity = t; gHub.style.opacity = t; });
     }
 
-    async function runPrompt(c, k, row, alive) {
+    /* One prompt through circuit c. Returns whether it was right, or null when
+       the run was cut short (every await is followed by a check of alive). */
+    async function runPrompt(c, k, alive) {
       var p = P[k], tr = c.trace(k), asked = [];
-      await h.tween(T.swap, function (t) { if (alive()) cText.style.opacity = 1 - t; });
-      if (!alive()) return null;
+      async function go(promise) { await promise; return alive(); }
+      if (!await go(hold())) return null;
+      // a new prompt fades in; the one already on the card stays put
+      var swap = cardK !== k;
+      if (swap && !await go(h.tween(T.swap, function (t) { if (alive()) cText.style.opacity = 1 - t; }))) return null;
       resetPrompt();
       setCard(k);
+      if (swap) cText.style.opacity = 0;
       readReset(c, tr.q ? tr.q[0] : null);
-      await h.tween(T.swap, function (t) { if (alive()) cText.style.opacity = t; });
-      await h.sleep(T.beat);
+      if (swap && !await go(h.tween(T.swap, function (t) { if (alive()) cText.style.opacity = t; }))) return null;
+      if (!await go(h.sleep(T.beat))) return null;
       // into the circuit: to the router, or through the prompt classifier to ask or stop
       for (var e = 0; e < Wr.entry.length; e++) {
-        if (!alive()) return null;
-        await send(Wr.entry[e], alive);
-        if (!alive()) return null;
-        if (Wr.lit[e]) { hubOn(e, true); await h.sleep(T.hub); }
+        if (!await go(hold()) || !await go(send(Wr.entry[e], alive))) return null;
+        if (Wr.lit[e]) { hubOn(e, true); if (!await go(h.sleep(T.hub))) return null; }
       }
       for (var g = 0; g < tr.groups.length; g++) {
-        if (!alive()) return null;
         var grp = tr.groups[g];
         // a cascade hands the prompt along the row; the others send it from the top
-        await Promise.all(grp.map(function (i) { return send(g > 0 && c.key === 'cascade' ? Wr.chain[i] : Wr.fan[i], alive); }));
-        if (!alive()) return null;
+        if (!await go(hold())) return null;
+        if (!await go(Promise.all(grp.map(function (i) { return send(g > 0 && c.key === 'cascade' ? Wr.chain[i] : Wr.fan[i], alive); })))) return null;
         var cost = 0;
-        grp.forEach(function (i) { stations[i].st.state('active'); row.add(M[i].cost); cost += M[i].cost; asked.push(i); });
+        grp.forEach(function (i) { stations[i].st.state('active'); cost += M[i].cost; asked.push(i); });
         readAdd(asked.length, cost);
-        await Promise.all(grp.map(function (i) { return stations[i].slot.fill(p.answers[i]); }));
+        if (!await go(Promise.all(grp.map(function (i) { return stations[i].slot.fill(p.answers[i]); })))) return null;
+        // a circuit that keeps a chance harmful pauses on it; the others go straight on
         if (tr.q) rQ.textContent = h.pct(tr.q[g + 1]);
-        await h.sleep(T.beat);
+        if (!await go(h.sleep(tr.q ? T.beat : T.beat / 2))) return null;
       }
-      if (!alive()) return null;
       // out to the prediction: every vote, or the last answer, or straight past the models
       var outs = !asked.length ? [Wr.bypass]
         : c.key === 'vote' ? asked.map(function (i) { return Wr.out[i]; })
         : [Wr.out[asked[asked.length - 1]]];
-      await Promise.all(outs.map(function (wo) { return send(wo, alive); }));
-      if (!alive()) return null;
+      if (!await go(hold()) || !await go(Promise.all(outs.map(function (wo) { return send(wo, alive); })))) return null;
       var ok = tr.predict === p.label;
       predV.textContent = tr.predict ? 'HARMFUL' : 'SAFE';
-      await h.tween(T.pred, function (t) { fadeIn(predV, t); });
+      if (!await go(h.tween(T.pred, function (t) { fadeIn(predV, t); }))) return null;
       setVisible(badges[ok ? 1 : 0], true);
-      // what the circuit did not use steps back
-      stations.forEach(function (s, i) { if (asked.indexOf(i) < 0) { s.st.state('dim'); s.slot.hide(); } });
+      // what the circuit did not use steps back; a model it did not ask has no answer to send on
+      stations.forEach(function (s, i) {
+        if (asked.indexOf(i) >= 0) return;
+        s.st.state('dim'); s.slot.hide();
+        if (Wr.out[i]) Wr.out[i].el.classList.add('gone');
+      });
       allWires().forEach(function (wo) { if (!wo.el.classList.contains('live')) wo.off(true); });
       return ok;
     }
 
+    var running = -1;            // the circuit being walked, whose row is still empty
     async function runCircuit(i, alive) {
       select(i);
-      var row = rows[i], right = 0;
-      row.reset();
+      running = i;
       for (var n = 0; n < ORDER.length; n++) {
-        var ok = await runPrompt(CIRCUITS[i], ORDER[n], row, alive);
+        var ok = await runPrompt(CIRCUITS[i], ORDER[n], alive);
         if (ok === null || !alive()) return;
-        if (ok) right++;
-        row.score(right, ORDER.length);
-        await h.sleep(n < ORDER.length - 1 ? T.prompt : 0);
+        if (n < ORDER.length - 1) await h.sleep(T.prompt);
       }
+      if (!alive()) return;
+      running = -1;
+      rows[i].show(true);
     }
 
     // a tab plays its own circuit; Replay (the runner) walks through all four
@@ -570,23 +643,25 @@
     function pick(i) {
       var mine = ++token;
       picked = true;
+      // the circuit whose walk this cuts short shows its complete result, not a part of it
+      if (running >= 0 && running !== i) rows[running].show(false);
       runCircuit(i, function () { return mine === token && svg.isConnected; });
     }
 
     select(0);
     setCard(ORDER[0]);
-    readReset(CIRCUITS[0], null);
 
     return async function play(alive) {
       if (picked) return;
       var mine = ++token;
       var live = function () { return alive() && mine === token && svg.isConnected; };
-      rows.forEach(function (r) { r.reset(); });
+      running = -1;
+      rows.forEach(function (r) { r.clear(); });
       for (var i = 0; i < CIRCUITS.length; i++) {
         if (!live()) return;
         await runCircuit(i, live);
         if (!live()) return;
-        if (i < CIRCUITS.length - 1) await h.sleep(T.circuit);
+        if (i < CIRCUITS.length - 1) { await h.sleep(T.circuit); await hold(); }
       }
     };
   });

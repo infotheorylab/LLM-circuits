@@ -1,4 +1,4 @@
-/* The results chart: accuracy against average cost per item on five tasks.
+/* The results chart: balanced accuracy against average cost per item on five tasks.
 
    Every value is read from the paper's Figure 4 (data/frontier.json, made by
    scripts/extract_frontier.py), so nothing here is computed by the page. On
@@ -8,9 +8,10 @@
    budget) say how many calls the circuit makes there and to which models,
    read from the calls-per-model panel of the same figure.
 
-   Colours follow the page: green / blue / red diamonds are cheap / mid /
-   expensive models (the paper's own shading groups them the same way), amber
-   is what the circuit does, grey is everything else. */
+   Names and colours follow the page: models carry their real names (NAMES),
+   and green / blue / red diamonds are cheap / mid / expensive models, fixed
+   per model so that a model keeps its colour on every tab. Amber is what the
+   circuit does, grey is everything else. */
 (function () {
   'use strict';
   var h = LC.h, svgEl = h.svgEl, label = h.label;
@@ -29,6 +30,52 @@
   var LOW = 0.01, MID = 0.1;                 // the high budget is the curve's last interval bar
   var BAND_MIN_PLOT = 760;                   // below this plot width the notes go under the chart
 
+  /* The data keeps the paper's legend names; the page shows the names of the
+     data sheet. tier is the price tier by list price (input plus output, per
+     million tokens, on the data sheet: under $0.20 cheap, under $0.30 mid,
+     else expensive), so the three Gemma 4 models keep the colours they have in
+     the explanatory figures. Models without a tier here (HealthBench and the
+     Decision Index leaderboard, each on one tab only) keep the paper's shading,
+     which ranks them by cost. label is the shorter name drawn beside a mark. */
+  function entry(name, tier, label) { return { name: name, tier: tier, label: label || name }; }
+  var NAMES = {
+    'Gemma 4B': entry('Gemma 4 E4B', 0), 'Gemma 2B': entry('Gemma 4 E2B', 0),
+    'Gemma 26B': entry('Gemma 4 26B', 1), 'Gemma 31B': entry('Gemma 4 31B', 2),
+    'Qwen 4B': entry('Qwen3 4B', 0), 'Qwen 8B': entry('Qwen3 8B', 2), 'Qwen 32B': entry('Qwen3 32B', 2),
+    'OSS 20B low': entry('gpt-oss-20b (low reasoning)', null, 'gpt-oss-20b low'),
+    'OSS 20B medium': entry('gpt-oss-20b (medium reasoning)', null, 'gpt-oss-20b medium'),
+    'OSS 20B high': entry('gpt-oss-20b (high reasoning)', null, 'gpt-oss-20b high'),
+    'OSS 120B low': entry('gpt-oss-120b (low reasoning)', null, 'gpt-oss-120b low'),
+    'OSS 120B medium': entry('gpt-oss-120b (medium reasoning)', null, 'gpt-oss-120b medium'),
+    'Granite 3B none': entry('Granite 4.2 3B (reasoning off)', null, 'Granite 4.2 3B off'),
+    'Granite 3B low': entry('Granite 4.2 3B (low reasoning)', null, 'Granite 4.2 3B low'),
+    'Granite 3B default': entry('Granite 4.2 3B (default reasoning)', null, 'Granite 4.2 3B default')
+  };
+  // the short name of a model, as its mark and the budget notes show it
+  var LABEL = {};
+  Object.keys(NAMES).forEach(function (k) { LABEL[NAMES[k].name] = NAMES[k].label; });
+  function labelOf(name) { return LABEL[name] || name; }
+
+  // rename the models once, in the marks and in the calls panel alike
+  function rename(D) {
+    Object.keys(D.tasks).forEach(function (k) {
+      var T = D.tasks[k], c = T.calls, bands = {};
+      T.models.forEach(function (m) {
+        var n = NAMES[m.name];
+        m.tier = n && n.tier !== null ? n.tier : tierOf(m.color);
+        m.label = n ? n.label : m.name;
+        m.name = n ? n.name : m.name;
+      });
+      c.models = c.models.map(function (old) {
+        var to = NAMES[old] ? NAMES[old].name : old;
+        bands[to] = c.bands[old];
+        return to;
+      });
+      c.bands = bands;
+    });
+    return D;
+  }
+
   var current = 'beavertails';               // survives a rebuild at the breakpoint
   var asked = (location.search.match(/[?&]frontier=([a-z_]+)/) || [])[1];
   if (asked && TASKS.some(function (t) { return t.key === asked; })) current = asked;
@@ -38,7 +85,7 @@
     if (!DATA) DATA = fetch('./data/frontier.json').then(function (r) {
       if (!r.ok) throw new Error('frontier.json: ' + r.status);
       return r.json();
-    });
+    }).then(rename);
     return DATA;
   }
   function meta(key) { return TASKS.filter(function (t) { return t.key === key; })[0]; }
@@ -48,6 +95,7 @@
   function log10(x) { return Math.log(x) / Math.LN10; }
   function sig2(c) { return String(+c.toPrecision(2)); }
   function fmtAcc(a) { return a.toFixed(1) + '%'; }
+  function accText(a) { return fmtAcc(a) + ' balanced accuracy'; }
   function fmtCalls(n) { return n < 1 ? n.toFixed(2) : n.toFixed(1); }
 
   // the paper shades its judges green, blue and red from cheap to expensive
@@ -83,10 +131,11 @@
     return { total: total, per: per };
   }
 
-  // "almost all to Gemma 4B", "mostly to A and B", "spread over 6 models"
+  // "almost all to Gemma 4 E4B", "mostly to A and B", "spread over 6 models";
+  // the notes use the names drawn beside the marks, so a note leads to its mark
   function mixText(c) {
     var p = c.per, t = c.total;
-    function nm(q) { return q.name.replace(/ /g, '\u00a0'); }
+    function nm(q) { return labelOf(q.name).replace(/ /g, '\u00a0'); }
     if (t < 0.005) return 'no model calls';
     var s1 = p[0].n / t, s2 = p[1] ? p[1].n / t : 0;
     if (s1 >= 0.9) return 'almost all to ' + nm(p[0]);
@@ -223,7 +272,8 @@
     var M = { W: W, narrow: false, x0: 60, x1: W - 22, fs: 14 };
     M.band = M.x1 - M.x0 >= BAND_MIN_PLOT;
     M.y0 = M.band ? 98 : 14;
-    M.y1 = M.y0 + Math.round(Math.max(300, Math.min(370, W * 0.36)));
+    // a little shorter on a short window, so the headline and the whole chart fit on screen
+    M.y1 = M.y0 + Math.round(Math.max(300, Math.min(370, W * 0.36, (window.innerHeight || 900) - 560)));
     M.xticks = [0.003, 0.01, 0.03, 0.1, 0.3, 1, 3];
     M.rowsTop = M.y1 + 82;
     return M;
@@ -239,6 +289,7 @@
     var head = fig.querySelector('.fig-head');
     head.parentNode.insertBefore(box, head.nextSibling);
 
+    // the tabs take the head's title slot, which saves a row on a laptop screen
     var tabs = document.createElement('div');
     tabs.className = 'fx-tabs';
     tabs.setAttribute('role', 'tablist');
@@ -260,7 +311,8 @@
       var j = (i + (e.key === 'ArrowRight' ? 1 : buttons.length - 1)) % buttons.length;
       buttons[j].focus(); onSelect(TASKS[j].key); e.preventDefault();
     });
-    box.appendChild(tabs);
+    var title = head.querySelector('.fig-title');
+    head.replaceChild(tabs, title);
 
     var sub = document.createElement('p');
     sub.className = 'fx-sub';
@@ -272,7 +324,8 @@
     leg.className = 'fx-legend';
     function item(s, keySvg, text) {
       var li = document.createElement('span');
-      li.className = 'fx-li';
+      // dimmed from the start when the chart will build up, so the legend does not flash on first
+      li.className = 'fx-li' + (LC.REDUCE ? '' : ' fx-wait');
       li.dataset.s = s;
       li.innerHTML = keySvg;                 // fixed markup written here, no data in it
       var t = document.createElement('span');
@@ -310,7 +363,7 @@
   /* ------------------------------------------------------------ the figure */
 
   LC.figure('frontier', function (fig, ctx) {
-    h.head(fig, 'Accuracy and cost on five tasks');
+    h.head(fig, '');
     var ui = controls(fig, select);
     ui.set(current);
     var cs = getComputedStyle(fig);
@@ -421,7 +474,7 @@
       root.style.opacity = 1;
       svg.classList.remove('fx-dim', 'fx-ready');
       hideTip();
-      svg.setAttribute('aria-label', meta(key).name + ': accuracy against average cost per item');
+      svg.setAttribute('aria-label', meta(key).name + ': balanced accuracy against average cost per item');
 
       var P = placer(L);
       var layers = {};
@@ -445,13 +498,14 @@
         svgEl('line', { 'class': 'fx-axis', x1: x, y1: L.y1, x2: x, y2: L.y1 + 5 }, ax);
         label(ax, x, L.y1 + 21, String(c), 'fx-tick', { 'text-anchor': 'middle' });
       });
+      var XT = 'Average cost per item (1 = one call to the priciest model)';
       if (L.narrow) {
-        label(ax, 0, 16, 'Accuracy (%)', 'fx-axt');
+        label(ax, 0, 16, 'Balanced accuracy (%)', 'fx-axt');
         var xt = label(ax, (L.x0 + L.x1) / 2, L.y1 + 44, '', 'fx-axt', { 'text-anchor': 'middle' });
-        h.wrap(xt, 'Average cost per item (relative to the priciest model)', L.x1 - L.x0, 18);
+        h.wrap(xt, XT, L.x1 - L.x0, 18);
       } else {
-        label(ax, (L.x0 + L.x1) / 2, L.y1 + 48, 'Average cost per item (relative to the priciest model)', 'fx-axt', { 'text-anchor': 'middle' });
-        label(ax, 0, 0, 'Accuracy (%)', 'fx-axt', { 'text-anchor': 'middle', transform: 'translate(16,' + ((L.y0 + L.y1) / 2) + ') rotate(-90)' });
+        label(ax, (L.x0 + L.x1) / 2, L.y1 + 48, XT, 'fx-axt', { 'text-anchor': 'middle' });
+        label(ax, 0, 0, 'Balanced accuracy (%)', 'fx-axt', { 'text-anchor': 'middle', transform: 'translate(16,' + ((L.y0 + L.y1) / 2) + ') rotate(-90)' });
       }
 
       /* routing and cascading methods: thin grey lines */
@@ -461,6 +515,7 @@
         if (!pts || !pts.length) return;
         var xy = pts.map(function (p) { return [sx(p.cost), sy(p.acc)]; });
         var g = svgEl('g', { 'class': 'fx-bl' }, layers.base);
+        if (anim && mode !== 'switch') g.style.opacity = 0;
         var ext = Math.abs(xy[xy.length - 1][0] - xy[0][0]) + Math.abs(xy[xy.length - 1][1] - xy[0][1]);
         if (xy.length > 1 && ext > 3) { svgEl('path', { d: linePath(xy) }, g); P.poly(xy); }
         else {
@@ -494,7 +549,7 @@
       /* single models, cheapest first */
       var models = T.models.slice().sort(function (a, b) { return a.cost - b.cost; }).map(function (m) {
         var x = sx(m.cost), y = sy(m.acc);
-        var g = svgEl('g', { 'class': 'fx-mod t' + tierOf(m.color), transform: 'translate(' + x + ',' + y + ')' }, layers.marks);
+        var g = svgEl('g', { 'class': 'fx-mod t' + m.tier, transform: 'translate(' + x + ',' + y + ')' }, layers.marks);
         svgEl('path', { d: diamond(L.narrow ? 6 : 6.5) }, g);
         var r = { x: x - 8, y: y - 8, w: 16, h: 16 };
         P.rect(r);
@@ -596,17 +651,23 @@
       // models the notes name come first, then the rest from the most accurate down
       var named = B.map(function (b) { return b.mix; }).join(' ').replace(/\u00a0/g, ' ');
       var order = models.slice().sort(function (a, b) {
-        var na = named.indexOf(a.m.name) >= 0, nb = named.indexOf(b.m.name) >= 0;
+        var na = named.indexOf(a.m.label) >= 0, nb = named.indexOf(b.m.label) >= 0;
         return na !== nb ? (na ? -1 : 1) : b.m.acc - a.m.acc;
       });
       var CANDS = ['r', 'l', 'b', 'a', 'br', 'ar', 'bl', 'al'];
       order.forEach(function (o) {
-        var got = place(o.m.name, 'mod', o.x, o.y, 7, CANDS, o.rect);
+        var got = place(o.m.label, 'mod', o.x, o.y, 7, CANDS, o.rect);
         o.lbl = got && got.t;
       });
       order.forEach(function (o) {
-        if (o.lbl || named.indexOf(o.m.name) < 0) return;
-        var got = place(o.m.name, 'mod', o.x, o.y, 7, CANDS, o.rect, 'only');
+        if (o.lbl || named.indexOf(o.m.label) < 0) return;
+        var got = place(o.m.label, 'mod', o.x, o.y, 7, CANDS, o.rect, 'only');
+        o.lbl = got && got.t; o.tie = got && got.tie;
+      });
+      // the cheapest and the priciest model give the range of the pool, so they get a tied label if they have none
+      [models[0], models[models.length - 1]].forEach(function (o) {
+        if (o.lbl) return;
+        var got = place(o.m.label, 'mod', o.x, o.y, 7, CANDS, o.rect, 'only');
         o.lbl = got && got.t; o.tie = got && got.tie;
       });
 
@@ -686,7 +747,7 @@
         if (!n) { off(); return; }
         on(null);
         highlight(n.name === 'LMCircuit' ? null : n.name);
-        var rows = [['k', n.name], ['v', fmtAcc(n.p.acc) + ' accuracy'], ['d', 'cost ' + sig2(n.p.cost) + ' per item']];
+        var rows = [['k', n.name], ['v', accText(n.p.acc)], ['d', 'cost ' + sig2(n.p.cost) + ' per item']];
         if (n.name === 'LMCircuit') rows.push(['d', fmtCalls(callsAt(T, n.p.cost).total) + ' calls per item']);
         if (n.p.lo !== null) rows.push(['d', '95% interval ' + n.p.lo.toFixed(1) + ' to ' + n.p.hi.toFixed(1)]);
         showTip(n.x, n.y, rows);
@@ -695,32 +756,34 @@
       area.addEventListener('click', lineTip);
       area.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') off(); });
 
-      others.forEach(function (o) {
-        var c = svgEl('circle', { cx: o.x, cy: o.y, r: 11 }, hit);
-        focusable(c, 'Leaderboard model outside the pool: ' + fmtAcc(o.p.acc) + ' accuracy, cost ' + sig2(o.p.cost), function () {
-          on(o.g); showTip(o.x, o.y, [['k', 'Leaderboard model outside the pool'], ['v', fmtAcc(o.p.acc) + ' accuracy'], ['d', 'cost ' + sig2(o.p.cost) + ' per item']]);
+      // hit targets in order of importance, which is also the keyboard order:
+      // the circuit's budgets, the pool's models, majority voting, then the rest
+      marks.forEach(function (o) {
+        var c = svgEl('circle', { cx: o.x, cy: o.y, r: 14 }, hit);
+        var top3 = o.b.calls.per.slice(0, 3).filter(function (p) { return p.n >= 0.005; });
+        var rows = [['k', 'LMCircuit, ' + o.b.name.toLowerCase()], ['v', accText(o.b.acc)],
+          ['d', 'cost ' + sig2(o.b.cost) + ' per item'], ['d', o.b.value]];
+        top3.forEach(function (p) { rows.push(['d', p.name + ': ' + fmtCalls(p.n) + ' calls']); });
+        focusable(c, 'LMCircuit at a ' + o.b.name.toLowerCase() + ': ' + accText(o.b.acc) + ', ' + o.b.value + ', ' + o.b.mix.replace(/\u00a0/g, ' '), function () {
+          on(o.g); showTip(o.x, o.y, rows);
         });
       });
       models.forEach(function (o) {
         var c = svgEl('circle', { cx: o.x, cy: o.y, r: 13 }, hit);
-        focusable(c, o.m.name + ': ' + fmtAcc(o.m.acc) + ' accuracy, cost ' + sig2(o.m.cost), function () {
-          on(o.g); showTip(o.x, o.y, [['k', o.m.name], ['v', fmtAcc(o.m.acc) + ' accuracy'], ['d', 'cost ' + sig2(o.m.cost) + ' per item']]);
+        focusable(c, o.m.name + ': ' + accText(o.m.acc) + ', cost ' + sig2(o.m.cost) + ' per item', function () {
+          on(o.g); showTip(o.x, o.y, [['k', o.m.name], ['v', accText(o.m.acc)], ['d', 'cost ' + sig2(o.m.cost) + ' per item']]);
         });
       });
       var mc = svgEl('circle', { cx: mjx, cy: mjy, r: 14 }, hit);
-      var mjRows = [['k', 'Majority voting'], ['v', fmtAcc(mj.acc) + ' accuracy'],
+      var mjRows = [['k', 'Majority voting'], ['v', accText(mj.acc)],
         ['d', '95% interval ' + mj.lo.toFixed(1) + ' to ' + mj.hi.toFixed(1)], ['d', 'cost ' + sig2(mj.cost) + ' per item']];
-      focusable(mc, 'Majority voting: ' + fmtAcc(mj.acc) + ' accuracy, cost ' + sig2(mj.cost), function () {
+      focusable(mc, 'Majority voting: ' + accText(mj.acc) + ', cost ' + sig2(mj.cost) + ' per item', function () {
         on(mjg); showTip(mjx, mjy, mjRows);
       });
-      marks.forEach(function (o) {
-        var c = svgEl('circle', { cx: o.x, cy: o.y, r: 14 }, hit);
-        var top3 = o.b.calls.per.slice(0, 3).filter(function (p) { return p.n >= 0.005; });
-        var rows = [['k', 'LMCircuit, ' + o.b.name.toLowerCase()], ['v', fmtAcc(o.b.acc) + ' accuracy'],
-          ['d', 'cost ' + sig2(o.b.cost) + ' per item'], ['d', o.b.value]];
-        top3.forEach(function (p) { rows.push(['d', p.name + ': ' + fmtCalls(p.n) + ' calls']); });
-        focusable(c, 'LMCircuit at a ' + o.b.name.toLowerCase() + ': ' + fmtAcc(o.b.acc) + ' accuracy, ' + o.b.value + ', ' + o.b.mix, function () {
-          on(o.g); showTip(o.x, o.y, rows);
+      others.forEach(function (o) {
+        var c = svgEl('circle', { cx: o.x, cy: o.y, r: 11 }, hit);
+        focusable(c, 'Leaderboard model outside the pool: ' + accText(o.p.acc) + ', cost ' + sig2(o.p.cost) + ' per item', function () {
+          on(o.g); showTip(o.x, o.y, [['k', 'Leaderboard model outside the pool'], ['v', accText(o.p.acc)], ['d', 'cost ' + sig2(o.p.cost) + ' per item']]);
         });
       });
 
@@ -783,7 +846,7 @@
       for (var mi = 0; mi < models.length; mi++) {
         if (!live()) return;
         dropIn(models[mi]);
-        await h.sleep(230);
+        await h.sleep(330);
       }
       await h.sleep(250);
       if (!live()) return;

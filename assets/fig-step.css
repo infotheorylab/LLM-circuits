@@ -10,20 +10,28 @@
 [data-fig="step"] .stp-head { font-family: var(--font-display); font-size: 16px; font-weight: 600; fill: var(--ink); letter-spacing: -0.01em; }
 [data-fig="step"] .stp-col { font-size: 14px; fill: var(--muted); }
 
-[data-fig="step"] .stp-body { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1; }
-[data-fig="step"] .stp-stripe { fill: var(--line-2); }
-[data-fig="step"] .stp-row.t0 .stp-stripe { fill: var(--cost-0); }
-[data-fig="step"] .stp-row.t1 .stp-stripe { fill: var(--cost-1); }
-[data-fig="step"] .stp-row.t2 .stp-stripe { fill: var(--cost-2); }
+/* the prompt classifier's guess, where the circuit starts */
+[data-fig="step"] .stp-guess { font-size: 15px; fill: var(--ink-2); }
+[data-fig="step"] .stp-guess-v { font-family: var(--font-display); font-weight: 800; fill: var(--belief-ink); }
+[data-fig="step"] .lc-net line { transition: stroke .25s ease; }
+[data-fig="step"] .lc-net.on line { stroke: var(--wire-live); }
+[data-fig="step"].lc-paused .cw.live { animation-play-state: paused; }
+
+/* one row per option: a verb, then the model's solid block (or the navy prediction) */
+[data-fig="step"] .stp-body { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1; transition: fill .3s ease, stroke .3s ease; }
+[data-fig="step"] .stp-pill { fill: var(--navy); }
+[data-fig="step"] .stp-row.t0 .stp-pill { fill: var(--cost-0); }
+[data-fig="step"] .stp-row.t1 .stp-pill { fill: var(--block-1); }
+[data-fig="step"] .stp-row.t2 .stp-pill { fill: var(--cost-2); }
+[data-fig="step"] .stp-pill-t { font-family: var(--font-display); font-size: 14px; font-weight: 800; letter-spacing: -.01em; fill: #FFFFFF; }
 [data-fig="step"] .stp-lbl { font-size: 15px; fill: var(--ink); }
 [data-fig="step"] .stp-then { fill: var(--muted); }
 [data-fig="step"] .stp-probe { font-weight: 600; }
-[data-fig="step"] .stp-num { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--ink); }
+[data-fig="step"] .stp-num { font-family: var(--font-display); font-size: 15px; font-weight: 800; fill: var(--ink); font-variant-numeric: tabular-nums; }
 
-/* the option the circuit takes */
-[data-fig="step"] .stp-row.on .stp-body { stroke: var(--belief); stroke-width: 2.2; fill: #FFFBF0; }
+/* the option the circuit takes, outlined in the signal blue of the circuits */
+[data-fig="step"] .stp-row.on .stp-body { stroke: var(--wire-live); stroke-width: 2.2; fill: #F1F4FF; }
 [data-fig="step"] .stp-row.on .stp-name { font-weight: 600; }
-[data-fig="step"] .stp-row.on .stp-num { fill: var(--belief-ink); }
 
 [data-fig="step"] .stp-why { font-size: 14.5px; fill: var(--ink-2); }
 [data-fig="step"] .stp-lead { font-weight: 600; fill: var(--ink); }

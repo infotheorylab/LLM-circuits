@@ -1,11 +1,14 @@
-/* The best circuit as a tree, with a slider for the price of a query.
+/* The best circuit as a tree, with a slider for the circuit setting.
 
-   Each slider stop is a price at which the dynamic program's best circuit
-   changes; between stops the tree, its chance of a mistake and its average
-   spend stay the same, so a finer slider would only repeat itself. On arrival
-   the price sweeps from high to low and the tree grows. The amber path is what
-   the circuit does on the hard prompt, whose three models answer harmful,
-   safe, harmful.
+   The setting is the price the dynamic program puts on cost (LC.LAMBDA in
+   core.js), from prioritize cost (left: a high price) to prioritize accuracy
+   (right: a low one); the models' own prices never change. Each slider stop
+   is a setting at which the best circuit changes; between stops the tree, its
+   chance of a mistake and its average cost stay the same, so a finer slider
+   would only repeat itself. On arrival the setting sweeps from cost to
+   accuracy and the tree grows. The moving dashed path is what the circuit does
+   on the hard prompt, whose three models answer harmful, safe, harmful; it
+   ends in the navy prediction.
 
    This screen comes before the prompt classifier (the next screen), so the
    dynamic program uses what a circuit knows without one: a prior of one half
@@ -59,10 +62,20 @@
   }
   function walk(n, fn) { fn(n); n.kids.forEach(function (k) { walk(k, fn); }); }
 
+  // the signal along the path moves; with reduced motion it stays dashed and still
+  function flow(el) { el.classList.add('live'); if (LC.REDUCE) el.style.animation = 'none'; }
+  // the moving dashes rest while the figure is off screen
+  function pauseOffscreen(fig) {
+    if (fig._lcPause || !('IntersectionObserver' in window)) return;
+    fig._lcPause = new IntersectionObserver(function (es) { fig.classList.toggle('lc-paused', !es[es.length - 1].isIntersecting); });
+    fig._lcPause.observe(fig);
+  }
+
   /* ----------------------------------------------------------- the figure */
 
   LC.figure('dp', function (fig, ctx) {
-    h.head(fig, 'The best circuit at each price');
+    h.head(fig, 'The best circuit at each setting');
+    pauseOffscreen(fig);
     var ui = controls(fig);
     var cs = getComputedStyle(fig);
     var W = fig.clientWidth ? Math.round(fig.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) : 560;
@@ -123,7 +136,7 @@
 
     /* Narrow: two columns, safe on the left and harmful on the right. Only the
        path of this prompt is opened; a branch it does not take shows its first
-       model as a dashed box. */
+       model as a faded block. */
     function layoutNarrow(root) {
       var gap = Math.min(40, VW - 2 * S.w - 4);
       var xs = [VW / 2 - gap / 2 - S.w / 2, VW / 2 + gap / 2 + S.w / 2];
@@ -161,9 +174,9 @@
       var root = treeOf(stop.memo);
       if (ctx.narrow) layoutNarrow(root); else layoutWide(root);
       var g = svgEl('g', { 'class': 'dpx-tree' }, layer);
-      var edges = svgEl('g', {}, g), words = svgEl('g', {}, g), nodes = svgEl('g', {}, g), amber = svgEl('g', {}, g);
+      var edges = svgEl('g', {}, g), words = svgEl('g', {}, g), nodes = svgEl('g', {}, g), trail = svgEl('g', {}, g);
       var items = [], path = [];
-      var stem = svgEl('path', { 'class': 'dpx-edge on', d: 'M' + root.x + ',' + (card.h + 1) + ' V' + rowY(0) }, amber);
+      var stem = svgEl('path', { 'class': 'cw dpx-edge on', d: 'M' + root.x + ',' + (card.h + 1) + ' V' + rowY(0) }, trail);
       path.push({ edge: stem, node: null });
 
       walk(root, function (n) {
@@ -171,10 +184,10 @@
         var ng = svgEl('g', { 'class': 'dpx-node' }, nodes);
         if (n.r.act === 'ask' && !n.ghost) {
           var st = LC.kit.station(ng, n.x - b.w / 2, y, MODELS[n.r.i], { w: b.w, h: b.h, unit: false });
-          n.light = function () { st.state('on'); };
+          n.light = function () { st.state('active'); };
         } else if (n.ghost) {
           var gh = LC.kit.station(ng, n.x - b.w / 2, y, MODELS[n.r.i], { w: S.w, h: S.h, unit: false });
-          gh.state('ghost');
+          gh.state('dim');
           n.light = function () {};
         } else {
           var lg = svgEl('g', { 'class': 'dpx-leaf' }, ng);
@@ -192,7 +205,7 @@
           if (Math.abs(dx) < 1) d = 'M' + n.x + ',' + y0 + ' V' + cy;
           else d = 'M' + n.x + ',' + y0 + ' V' + (yb - r) + ' Q' + n.x + ',' + yb + ' ' + (n.x + s * r) + ',' + yb +
             ' H' + (k.x - s * r) + ' Q' + k.x + ',' + yb + ' ' + k.x + ',' + (yb + r) + ' V' + cy;
-          var e = svgEl('path', { 'class': 'dpx-edge', d: d }, edges);
+          var e = svgEl('path', { 'class': 'cw dpx-edge', d: d }, edges);
           // wide: the answer sits over the bar where it turns down to its child;
           // narrow: beside the stem, on its branch's side, since the far column
           // holds the previous row's other box
@@ -202,7 +215,7 @@
           items.push({ el: e, depth: k.depth, edge: true });
           items.push({ el: t, depth: k.depth });
           if (n.on && k.on) {
-            var a = svgEl('path', { 'class': 'dpx-edge on', d: d }, amber);
+            var a = svgEl('path', { 'class': 'cw dpx-edge on', d: d }, trail);
             path.push({ edge: a, node: k, word: t });
           }
         });
@@ -211,11 +224,11 @@
       // what this prompt costs on its path
       var spent = 0, leaf = null;
       walk(root, function (n) { if (n.on && n.r.act === 'ask' && !n.ghost) spent += MODELS[n.r.i].cost; if (n.on && !n.kids.length) leaf = n; });
-      var spentT = label(amber, leaf.x, leaf.bottom + 24, 'spent ' + h.usd(spent), 'dpx-spent', { 'text-anchor': 'middle' });
+      var spentT = label(trail, leaf.x, leaf.bottom + 24, 'spent ' + h.usd(spent), 'dpx-spent', { 'text-anchor': 'middle' });
       return { g: g, root: root, items: items, path: path, spent: spentT };
     }
 
-    // grow the tree row by row, then trace this prompt's path in amber
+    // grow the tree row by row, then trace this prompt's path with the moving signal
     async function grow(t, live, fast) {
       var maxD = 0;
       t.items.forEach(function (it) { maxD = Math.max(maxD, it.depth); it.el.style.opacity = 0; });
@@ -234,6 +247,9 @@
         var p = t.path[i];
         await h.tween(fast ? 140 : 340, function (u) { p.edge.style.strokeDashoffset = p.edge.len * (1 - u); });
         if (!live()) return;
+        // drawn in: hand the dashes over to the moving signal
+        p.edge.style.strokeDasharray = ''; p.edge.style.strokeDashoffset = '';
+        flow(p.edge);
         (p.node || t.root).light();
         if (p.word) p.word.setAttribute('class', 'dpx-ans on');
       }
@@ -295,16 +311,16 @@
     box.className = 'dpx-ui';
     box.innerHTML =
       '<div class="dpx-ctl">' +
-        '<label class="dpx-k" for="dpx-price">Price per query</label>' +
+        '<label class="dpx-k" for="dpx-price">Circuit setting</label>' +
         '<div class="dpx-range">' +
           '<input type="range" id="dpx-price" min="0" max="' + (STOPS.length - 1) + '" step="1" value="0" />' +
           '<div class="dpx-ticks" aria-hidden="true">' + STOPS.map(function () { return '<i></i>'; }).join('') + '</div>' +
-          '<div class="dpx-ends" aria-hidden="true"><span>high</span><span>low</span></div>' +
+          '<div class="dpx-ends" aria-hidden="true"><span>Prioritize cost</span><span>Prioritize accuracy</span></div>' +
         '</div>' +
       '</div>' +
       '<div class="dpx-read" aria-live="polite">' +
         '<div class="dpx-stat"><span class="l">Chance of a mistake</span><b data-k="err"></b></div>' +
-        '<div class="dpx-stat"><span class="l">Average spend</span><b data-k="cost"></b></div>' +
+        '<div class="dpx-stat"><span class="l">Average cost</span><b data-k="cost"></b><span class="u">' + LC.h.PER + '</span></div>' +
       '</div>';
     var headEl = fig.querySelector('.fig-head');
     fig.insertBefore(box, headEl ? headEl.nextSibling : fig.firstChild);
@@ -314,9 +330,9 @@
       set: function (k) {
         var r = STOPS[k].memo[ROOT_KEY];
         input.value = k;
-        input.setAttribute('aria-valuetext', 'price ' + (k + 1) + ' of ' + STOPS.length + ', from high to low');
+        input.setAttribute('aria-valuetext', 'setting ' + (k + 1) + ' of ' + STOPS.length + ', from prioritize cost to prioritize accuracy');
         err.textContent = LC.h.pct(r.err);
-        cost.textContent = LC.h.price(r.cost);
+        cost.textContent = LC.h.usd(r.cost);
       }
     };
   }

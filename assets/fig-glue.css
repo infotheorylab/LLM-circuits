@@ -1,1 +1,56 @@
-/* fig-glue */
+/* fig-glue: LMCircuit's two parts, fitted once and solved per setting (assets/fig-glue.js). */
+
+/* the figure keeps one unit per CSS pixel; a max-height would shrink its words */
+[data-fig="glue"] .fig-svg svg { max-height: none; }
+
+[data-fig="glue"] .gl-panel { fill: var(--paper-hi); stroke: var(--accent-brd); stroke-width: 1.2; }
+[data-fig="glue"] .gl-num-bg { fill: var(--navy); }
+[data-fig="glue"] .gl-num { font-family: var(--font-display); font-size: 14px; font-weight: 800; fill: #FFFFFF; }
+[data-fig="glue"] .gl-title { font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -.01em; fill: var(--ink); }
+
+/* inputs: white blocks with the wire's colour as border, as on the cover */
+[data-fig="glue"] .gl-pill { fill: var(--paper-hi); stroke: var(--wire); stroke-width: 1.5; }
+[data-fig="glue"] .gl-pill-t { font-family: var(--font-display); font-size: 15px; font-weight: 700; fill: var(--ink); }
+[data-fig="glue"] .gl-pill-s { font-size: 14px; fill: var(--muted); }
+[data-fig="glue"] .gl-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; fill: var(--ink); }
+
+/* the prompt classifier's icon is grey until it runs */
+[data-fig="glue"] .lc-net circle, [data-fig="glue"] .lc-net line { transition: fill .35s ease, stroke .35s ease; }
+[data-fig="glue"] .lc-net.idle circle { fill: var(--line-2); }
+[data-fig="glue"] .lc-net.idle line { stroke: var(--line); }
+
+/* what the classifier returns */
+[data-fig="glue"] .gl-card { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+[data-fig="glue"] .gl-rule { stroke: var(--line); stroke-width: 1; }
+[data-fig="glue"] .gl-k { font-size: 14px; fill: var(--muted); }
+[data-fig="glue"] .gl-m { font-size: 14px; font-weight: 600; fill: var(--ink); }
+[data-fig="glue"] .gl-v { font-family: var(--font-mono); font-size: 14px; font-weight: 700; fill: var(--ink-2); }
+[data-fig="glue"] .gl-v.q, [data-fig="glue"] .gl-big { fill: var(--belief-ink); }
+[data-fig="glue"] .gl-big { font-family: var(--font-display); font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+[data-fig="glue"] .gl-track { fill: var(--line); }
+[data-fig="glue"] .gl-fill.q { fill: var(--belief); }
+[data-fig="glue"] .gl-fill.c0 { fill: var(--cost-0); }
+[data-fig="glue"] .gl-fill.c1 { fill: var(--block-1); }
+[data-fig="glue"] .gl-fill.c2 { fill: var(--cost-2); }
+
+/* the setting and the dynamic program */
+[data-fig="glue"] .gl-opt text { font-size: 14px; fill: var(--ink-2); }
+[data-fig="glue"] .gl-opt.on text { font-weight: 700; fill: var(--ink); }
+[data-fig="glue"] .gl-radio { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1.6; transition: stroke .3s ease; }
+[data-fig="glue"] .gl-opt.on .gl-radio { stroke: var(--navy); }
+[data-fig="glue"] .gl-dot { fill: var(--navy); opacity: 0; transition: opacity .3s ease; }
+[data-fig="glue"] .gl-opt.on .gl-dot { opacity: 1; }
+[data-fig="glue"] .gl-dp { fill: var(--paper-hi); stroke: var(--navy); stroke-width: 2; transition: stroke .3s ease, filter .3s ease; }
+[data-fig="glue"] .gl-dp.on { stroke: var(--wire-live); stroke-width: 2.5; filter: drop-shadow(0 0 6px rgba(49,85,235,.45)); }
+[data-fig="glue"] .gl-dp-t { font-family: var(--font-display); font-size: 16px; font-weight: 800; fill: var(--ink); }
+
+/* the circuit: solid model blocks and the navy prediction, as on the cover */
+[data-fig="glue"] .gl-board { fill: var(--surface); stroke: var(--wire); stroke-width: 1.5; }
+[data-fig="glue"] .gl-bk { font-size: 14px; font-weight: 600; fill: var(--ink-2); }
+[data-fig="glue"] .gl-cost { font-size: 14px; font-weight: 600; fill: var(--ink); }
+[data-fig="glue"] .gl-none { fill: none; stroke: var(--line-2); stroke-width: 1.5; stroke-dasharray: 5 5; }
+[data-fig="glue"] .gl-none-t { font-size: 14px; fill: var(--muted); }
+[data-fig="glue"] .gl-pred { fill: var(--navy); }
+[data-fig="glue"] .gl-pred-t { font-family: var(--font-display); font-size: 17px; font-weight: 800; fill: #FFFFFF; }
+[data-fig="glue"] .gl-pred-s { font-size: 14px; font-weight: 500; fill: #FFFFFF; opacity: .92; }
+[data-fig="glue"] .station { transition: none; }   /* the script fades the blocks in */

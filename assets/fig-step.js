@@ -1,12 +1,13 @@
 /* fig-step: the hard prompt, one decision at a time.
 
-   The circuit runs on the hard prompt with its own prior and per-prompt
-   accuracies (what the prompt classifier would predict). At each state it
+   LMCircuit runs on the hard prompt, starting from its prompt classifier's
+   guess (the prompt's own prior and per-prompt accuracies), which the row
+   under the prompt shows. At each state it
    compares stopping now with asking each model it has not asked yet; one row
    per option shows two numbers, both read from the LC.dp.solve memo:
 
      price    what the option is expected to spend from this state on, in
-              dollars per million tokens: the model's price plus whatever the
+              dollars per million prompts: the model's price plus whatever the
               best circuit asks after it
      mistake  the chance that the final prediction is wrong, averaged over the
               model's two possible answers, with the best circuit continuing
@@ -16,8 +17,10 @@
    The program takes the option with the lowest LAMBDA * price + mistake. The
    figure says "worth" / "not worth" instead of showing LAMBDA. The price
    includes later calls because the mistake does: next to the model's own price
-   alone, Gemma 4 E4B ($0.02, then Gemma 4 31B) would look like a bargain beside
-   Gemma 4 31B ($0.09) at the same 12%.
+   alone, Gemma 4 E4B ($20, then Gemma 4 31B) would look like a bargain beside
+   Gemma 4 31B ($90) at the same 12%. Each option names its model in a solid
+   block of the model's colour, and stopping names its prediction in navy, as
+   in the circuits figure.
 
    Everything stays on screen, so the final frame (reduced motion, ?still)
    shows both decisions. Next skips the pause before the next beat and then
@@ -31,6 +34,8 @@
   var PAD = 1.5;                 // keeps outer strokes inside the viewBox
   var ROW_H = 36, ROW_H2 = 54, ROW_GAP = 6, INSET = 22;
   var METER_W = 116;             // the cost meter's column on the right
+  var PILL_PAD = 8, PILL_H = 24; // the block that names a model (or the prediction) in a row
+  var NET_S = 0.6;               // the prompt classifier's icon, about 33 x 35
 
   function child(key, i, x) { return key.substr(0, i) + x + key.substr(i + 1); }
   function pct(e) { return Math.round(e * 100) + '%'; }
@@ -87,12 +92,12 @@
       (same ? 'stays at ' + pct(stop.err) : 'barely moves') + '.';
   }
 
-  // [name, continuation] of one option; full gives the continuation's full model name
+  // [verb, block, continuation] of one option; full gives the continuation's full model name
   function optionText(o, s, full) {
-    var name = o.act === 'stop' ? 'Stop and answer ' + (s.q >= .5 ? 'harmful' : 'safe') : 'Ask ' + o.m.name;
-    if (o.act === 'stop' || o.then === null) return [name];
-    if (o.then === -1) return [name, 'then more'];
-    return [name, 'then ' + (full ? MODELS[o.then].name : MODELS[o.then].short)];
+    if (o.act === 'stop') return ['Stop and predict', s.q >= .5 ? 'harmful' : 'safe'];
+    if (o.then === null) return ['Ask', o.m.name];
+    if (o.then === -1) return ['Ask', o.m.name, 'then more'];
+    return ['Ask', o.m.name, 'then ' + (full ? MODELS[o.then].name : MODELS[o.then].short)];
   }
 
   /* Rewrap a text at the narrowest width that keeps its line count, so a
@@ -116,9 +121,17 @@
     first.appendChild(document.createTextNode(str.slice(k)));
   }
 
+  // the moving dashes rest while the figure is off screen
+  function pauseOffscreen(fig) {
+    if (fig._lcPause || !('IntersectionObserver' in window)) return;
+    fig._lcPause = new IntersectionObserver(function (es) { fig.classList.toggle('lc-paused', !es[es.length - 1].isIntersecting); });
+    fig._lcPause.observe(fig);
+  }
+
   LC.figure('step', function (fig, ctx) {
+    pauseOffscreen(fig);
     /* ---------------------------------------------------------- controls */
-    var headEl = h.head(fig, 'The hard prompt');
+    var headEl = h.head(fig, 'LMCircuit on the hard prompt');
     var replay = headEl.querySelector('[data-replay]');
     var btns = document.createElement('span');
     btns.className = 'stp-btns';
@@ -163,8 +176,16 @@
     var card = kit.promptCard(g, 0, 0, w, P.text);
     balance(card.text, '“' + P.text + '”', w - 32, 21);   // same line count, so the card's height still fits
 
+    // where LMCircuit starts: its prompt classifier reads the prompt and guesses
+    var netY = card.h + 18, netX = 28 * NET_S;
+    var link = kit.wire(g, 'M' + netX + ',' + card.h + ' V' + (netY + 2));
+    var net = kit.net(g, 0, netY, NET_S);
+    var guess = label(g, 44, netY + 23, '', 'stp-guess');
+    svgEl('tspan', {}, guess).textContent = 'Prompt classifier’s guess: ';
+    svgEl('tspan', { 'class': 'stp-guess-v' }, guess).textContent = h.pct(P.prior) + ' harmful';
+
     // the belief bar on the left, the money spent on the right
-    var barY = card.h + 44;
+    var barY = netY + 35 + 46;
     var bar = kit.beliefBar(g, 0, barY, w - METER_W - 34);
     var meter = kit.costMeter(g, w - METER_W, barY - 12);
 
@@ -173,9 +194,13 @@
     // whenever the longest option still fits on one line beside it.
     var probe = svgEl('g', {}, g);
     function textW(str, cls) { var t = label(probe, 0, 0, str, cls); return t.getComputedTextLength(); }
-    // option labels are measured in the chosen row's bold weight, which is the wider one
-    function lblW(parts) { return textW(parts.join(', '), 'stp-lbl stp-probe'); }
-    var errX = w - 14, digitW = textW('$0.000', 'stp-num');
+    // an option is its verb, a block, then what follows; the verb is measured in the
+    // chosen row's bold weight, which is the wider one
+    function pillW(str) { return textW(str, 'stp-pill-t') + 2 * PILL_PAD; }
+    function lblW(parts) {
+      return textW(parts[0], 'stp-lbl stp-probe') + 7 + pillW(parts[1]) + (parts[2] ? 6 + textW(parts[2], 'stp-lbl') : 0);
+    }
+    var errX = w - 14, digitW = textW('$000', 'stp-num');
     var longest = Math.max.apply(null, STEPS.map(function (s) {
       return Math.max.apply(null, s.opts.map(function (o) { return lblW(optionText(o, s, true)); }));
     }));
@@ -208,15 +233,16 @@
       s.opts.forEach(function (o, oi) {
         var rg = svgEl('g', { 'class': 'stp-row' + (o.act === 'ask' ? ' t' + o.m.tier : ' stop') }, b.g);
         var parts = stacked ? optionText(o, s, true) : texts[oi];
-        var name = parts[0], then = parts[1] || '';
+        var then = parts[2] || '';
         var two = stacked && !!then;
         var rh = two ? ROW_H2 : ROW_H;
         svgEl('rect', { 'class': 'stp-body', x: 0, y: y, width: w, height: rh, rx: 9 }, rg);
-        svgEl('rect', { 'class': 'stp-stripe', x: 8, y: y + 9, width: 4, height: rh - 18, rx: 2 }, rg);
         var mid = two ? y + 22 : y + rh / 2 + 5;
-        var t = label(rg, INSET, mid, '', 'stp-lbl');
-        svgEl('tspan', { 'class': 'stp-name' }, t).textContent = name;
-        if (then && !two) svgEl('tspan', { 'class': 'stp-then' }, t).textContent = ', ' + then;
+        var verb = label(rg, INSET, mid, parts[0], 'stp-lbl stp-name');
+        var px = INSET + verb.getComputedTextLength() + 7, pw = pillW(parts[1]);
+        svgEl('rect', { 'class': 'stp-pill', x: px, y: mid - 17, width: pw, height: PILL_H, rx: 7 }, rg);
+        label(rg, px + PILL_PAD, mid, parts[1], 'stp-pill-t');
+        if (then && !two) label(rg, px + pw + 6, mid, then, 'stp-lbl stp-then');
         if (two) label(rg, INSET, y + 41, then, 'stp-then stp-lbl');
         label(rg, costX, mid, h.usd(o.cost), 'stp-num', { 'text-anchor': 'end' });
         label(rg, errX, mid, pct(o.err), 'stp-num', { 'text-anchor': 'end' });
@@ -247,6 +273,8 @@
     function reset() {
       bar.set(P.prior, true);
       meter.reset();
+      link.live(false); net.classList.remove('on');
+      guess.style.opacity = LC.REDUCE ? 1 : 0;
       blocks.forEach(function (b, i) {
         h.show(b.head, i === 0);
         b.rows.forEach(function (r) { r.g.style.opacity = 0; chosen(r, false); });
@@ -262,6 +290,14 @@
       if (ctl.wake) ctl.wake();
       ctl.manual = false; ctl.credit = 0;
       reset();
+      await pause(500, alive);
+      // the prompt classifier reads the prompt; its guess is where the circuit starts
+      if (!alive()) return;
+      link.live(true); net.classList.add('on');
+      await h.sleep(600);
+      await fade(guess, 350, alive);
+      if (!alive()) return;
+      link.live(false);
       await pause(500, alive);
       for (var bi = 0; bi < blocks.length; bi++) {
         var b = blocks[bi];
