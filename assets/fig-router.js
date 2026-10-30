@@ -30,7 +30,7 @@
 
   // what a path spends, in dollars per million tokens
   function spentOf(steps) {
-    return steps.reduce(function (c, s) { return c + (s.act === 'ask' ? M[s.i].price : 0); }, 0);
+    return steps.reduce(function (c, s) { return c + (s.act === 'ask' ? M[s.i].cost : 0); }, 0);
   }
 
   /* Rewrap a card's quote at the narrowest width that keeps its line count,

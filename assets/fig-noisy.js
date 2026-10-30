@@ -14,7 +14,7 @@
 
   // a decision model returns a label and its probability, no text. TypeSafe's
   // list price for Jev: $0.042 per million input tokens, output free.
-  var JEV = { id: 'jev', name: 'Jev', short: 'Jev', tier: 1, price: .042 };
+  var JEV = { id: 'jev', name: 'Jev', short: 'Jev', tier: 1, price: .042, cost: 42 };
   var CALLS = [
     { m: LC.MODELS[0], x: 1 },
     { m: LC.MODELS[0], x: 0, note: 'again' },

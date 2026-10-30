@@ -9,20 +9,22 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Space+Mono:wght@400;700&family=Doto:wght@500;600;700&family=Silkscreen:wght@400;700&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Space+Mono:wght@400;700&family=Doto:wght@500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.css" integrity="sha384-WwGtaC6ywCHxA5cstpj/3+xIZvTez8dq2IcBQaXRkenHZ7FVVq1ZROtURwfbtTlG" crossorigin="anonymous" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.js" integrity="sha384-a1WQdjRj162i159OYq041X6I4K8NenkrI09LlPmiHg0YOb7CR+wJOraXwK9abpnE" crossorigin="anonymous"></script>
 
-<link rel="stylesheet" href="./assets/site.css?v=6" />
-<link rel="stylesheet" href="./assets/fig-hero.css?v=6" />
-<link rel="stylesheet" href="./assets/fig-hero-pixel.css?v=6" />
-<link rel="stylesheet" href="./assets/fig-noisy.css?v=6" />
-<link rel="stylesheet" href="./assets/fig-circuits.css?v=6" />
-<link rel="stylesheet" href="./assets/fig-step.css?v=6" />
-<link rel="stylesheet" href="./assets/fig-dp.css?v=6" />
-<link rel="stylesheet" href="./assets/fig-router.css?v=6" />
-<link rel="stylesheet" href="./assets/fig-frontier.css?v=6" />
-<link rel="stylesheet" href="./assets/authors.css?v=6" />
+<link rel="stylesheet" href="./assets/site.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-hero.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-uses.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-noisy.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-question.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-circuits.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-step.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-dp.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-router.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-glue.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-frontier.css?v=7" />
+<link rel="stylesheet" href="./assets/authors.css?v=7" />
 </head>
 <body>
 
@@ -48,13 +50,10 @@
       <a class="btn" href="https://github.com/hskhalaf/lmcircuit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>Code</a>
     </div>
 
-    <!-- The cover animation: three prompts, each answered by the circuit it needs. -->
-    <figure class="fig cover-fig" data-fig="hero" aria-label="Three prompts, each answered by the circuit it needs. The easy prompt is answered from the prompt alone, with no model call. The medium prompt is answered after one call to Gemma 4 E4B. The hard prompt goes straight to Gemma 4 31B and skips the two smaller models. A confidence bar shows the chance the prompt is harmful, and a meter shows the money spent, in dollars per million tokens.">
-      <figcaption class="fig-cap">Illustrative accuracies; real prices per million input tokens. The easy prompt needs no model, the medium one asks Gemma 4 E4B, and the hard one goes straight to Gemma 4 31B.</figcaption>
+    <!-- The cover animation: LMCircuit on three prompts, each answered by the circuit it needs. -->
+    <figure class="fig cover-fig" data-fig="hero" aria-label="LMCircuit on three prompts. A prompt classifier reads each prompt and gives a first guess; the circuit then asks the models it needs. The easy prompt is answered with no model call, the medium one after one call to Gemma 4 E4B, and the hard one after one call to Gemma 4 31B. Readouts show the chance the prompt is harmful, the number of calls and the cost for one million prompts.">
+      <figcaption class="fig-cap">Illustrative accuracies. Costs are list prices for classifying one million prompts.</figcaption>
     </figure>
-
-    <!-- Review only: compare the two styles of the cover animation; remove once one is chosen. -->
-    <div class="style-switch"><span class="lbl">Style</span><div class="seg" role="radiogroup" aria-label="Figure style" data-style-switch><button type="button" role="radio" data-value="vector">Vector</button><button type="button" role="radio" data-value="pixel">16-bit</button></div></div>
 
     <div class="cover-colleges">
       <img src="./img/seaslogo.png" alt="Harvard SEAS" onerror="this.style.display='none'"/>
@@ -80,37 +79,35 @@
 <section class="screen" id="uses" data-title="LLMs as classifiers">
   <div class="wrap">
     <div class="single">
-      <h2>LLMs are increasingly used for <span class="hl">classification</span></h2>
-      <p class="lede">Describe a task in a prompt, give the model an item, and it returns a label. Turning a language model into a classifier takes minutes, and many people now do it.</p>
+      <h2>LLMs are used for <span class="hl">classification</span></h2>
+      <p class="lede">Describe a task in a prompt, give the model an item, and it returns a label. Researchers and companies now label data this way at scale.</p>
     </div>
-    <div class="uses-grid">
-      <div class="use">
-        <span class="k">Many models</span>
-        <div class="n" data-role="or-count">351 models</div>
-        <p>on OpenRouter, with input prices from <span data-role="or-min">$0.006</span> to <span data-role="or-max">$30</span> per million tokens.</p>
-        <span class="src">OpenRouter model list, <span data-role="or-date">30 October 2026</span></span>
+    <!-- four use cases, each with a small looping animation drawn by fig-uses.js into .uc-anim -->
+    <div class="uc-grid" data-fig="uses">
+      <div class="uc" data-uc="social">
+        <div class="uc-anim" aria-hidden="true"></div>
+        <h3>Social science</h3>
+        <p>Coding tweets and news articles. ChatGPT beat crowd workers on most tasks, at about a thirtieth of the cost.</p>
+        <a href="https://doi.org/10.1073/pnas.2305016120" target="_blank" rel="noopener noreferrer">Gilardi et al., 2023</a>
       </div>
-      <div class="use">
-        <span class="k">Decision models</span>
-        <div class="n">247</div>
-        <p>open models that return a probability for each label instead of text, ranked on the Decision Index.</p>
-        <span class="src">Decision Index 0.4.1, 29 October 2026</span>
+      <div class="uc" data-uc="health">
+        <div class="uc-anim" aria-hidden="true"></div>
+        <h3>Health</h3>
+        <p>Grading answers against 48,562 criteria written by physicians.</p>
+        <a href="https://arxiv.org/abs/2505.08775" target="_blank" rel="noopener noreferrer">HealthBench, 2025</a>
       </div>
-      <div class="use">
-        <span class="k">Decision APIs</span>
-        <div class="n">One call</div>
-        <p>OpenAI, Microsoft and TypeSafe now sell classification as a single API call, billed only for the input tokens.</p>
-        <span class="src">Vendor documentation, October 2026</span>
+      <div class="uc" data-uc="moderation">
+        <div class="uc-anim" aria-hidden="true"></div>
+        <h3>Content moderation</h3>
+        <p>Applying a written policy to user content.</p>
+        <a href="https://openai.com/index/using-gpt-4-for-content-moderation/" target="_blank" rel="noopener noreferrer">OpenAI, 2023</a>
       </div>
-    </div>
-    <div class="annot">
-      <h3>Labelling data at scale</h3>
-      <ul>
-        <li><b>Social science</b>Coding tweets and news articles. ChatGPT beat crowd workers on most tasks, at about a thirtieth of the cost. <a href="https://doi.org/10.1073/pnas.2305016120" target="_blank" rel="noopener noreferrer">Gilardi et al., 2023</a></li>
-        <li><b>Health</b>Grading answers against 48,562 criteria written by physicians. <a href="https://arxiv.org/abs/2505.08775" target="_blank" rel="noopener noreferrer">HealthBench, 2025</a></li>
-        <li><b>Content moderation</b>Applying a written policy to user content. <a href="https://openai.com/index/using-gpt-4-for-content-moderation/" target="_blank" rel="noopener noreferrer">OpenAI, 2023</a></li>
-        <li><b>Model evaluation</b>LLM judges that decide which of two answers is better. <a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener noreferrer">Zheng et al., 2023</a></li>
-      </ul>
+      <div class="uc" data-uc="evaluation">
+        <div class="uc-anim" aria-hidden="true"></div>
+        <h3>Model evaluation</h3>
+        <p>LLM judges that decide which of two answers is better.</p>
+        <a href="https://arxiv.org/abs/2306.05685" target="_blank" rel="noopener noreferrer">Zheng et al., 2023</a>
+      </div>
     </div>
     <p class="closing">With hundreds of models to choose from, which ones should we use?</p>
   </div>
@@ -121,11 +118,11 @@
   <div class="wrap split">
     <div class="copy">
       <h2>An LLM classifier is a <span class="hl">noisy</span> measurement instrument</h2>
-      <p class="lede">Ask two models the same question and you can get two answers. Ask the same model twice and you can also get two answers. Every answer costs money.</p>
-      <p>So we treat each model, with its prompt and settings, as an instrument: each call is a noisy measurement of the true label, at a price.</p>
+      <p class="lede">Two models can give different answers to the same question, and so can one model asked twice. Every answer costs money.</p>
+      <p>We treat each model, with its prompt and settings, as an instrument: each call is a noisy measurement of the true label, at a price.</p>
     </div>
     <figure class="fig" data-fig="noisy" aria-label="One prompt is sent four times: twice to Gemma 4 E4B, once to the decision model Jev and once to Gemma 4 31B. Two calls answer harmful and two answer safe.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative answers. Gemma 4 E4B gives two different answers when asked twice, and the decision model Jev and Gemma 4 31B disagree. Prices are list prices per million input tokens.</figcaption>
+      <figcaption class="fig-cap" data-role="cap">Illustrative answers. Gemma 4 E4B gives two different answers when asked twice, and the decision model Jev and Gemma 4 31B disagree. Costs are list prices for one million prompts.</figcaption>
     </figure>
   </div>
 </section>
@@ -133,7 +130,8 @@
 <!-- ============ THE QUESTION ============ -->
 <section class="screen" id="question" data-title="The question">
   <div class="wrap">
-    <p class="ask"><span>Which LLMs should we ask?</span><span>Should we ask more than one, and in what order?</span><span>When should we stop?</span></p>
+    <p class="ask"><span data-q="1">Which LLMs should we ask?</span><span data-q="2">Should we ask more than one, and in what order?</span><span data-q="3">When should we stop?</span></p>
+    <figure class="fig q-fig" data-fig="question" aria-label="A prompt and a pool of models. First one model is picked, then several in turn, then the circuit stops and predicts."></figure>
   </div>
 </section>
 
@@ -141,17 +139,28 @@
 <section class="screen" id="circuits" data-title="Circuits">
   <div class="wrap split">
     <div class="copy">
-      <h2>We call any way of combining LLM classifiers a <span class="hl">circuit</span></h2>
-      <p class="lede">Combining classifiers is a classic problem in machine learning. Here each classifier is an LLM running on its own hardware, and a circuit connects them. It decides which models to ask, in what order, and how to turn their answers into one prediction.</p>
-      <p>Majority voting, routing and cascades are all circuits. We propose <strong>LMCircuit</strong>, which learns the best circuit from data.</p>
+      <h2>We call the combination of LLM classifiers a <span class="hl">circuit</span></h2>
+      <p class="lede">Combining classifiers is a classic problem in machine learning. Each LLM classifier runs on its own hardware, so we call their combination a circuit.</p>
+      <p>Majority voting, routing and cascades are circuits. They differ in which models they ask, in what order, and how they turn the answers into one prediction.</p>
     </div>
-    <figure class="fig" data-fig="circuits" aria-label="Four circuits over the same three models: majority voting, routing, a cascade and LMCircuit. A prompt travels through the models to a prediction, and the money spent is counted.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies; real prices per million input tokens. All four circuits get the three example prompts right. They differ in how much they spend.</figcaption>
+    <figure class="fig" data-fig="circuits" aria-label="Four circuits over the same three models: majority voting, routing, a cascade and LMCircuit. A signal travels from the prompt through the models to a prediction, and the cost is counted.">
+      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies. Costs are list prices for one million prompts. All four circuits get the three example prompts right. They differ in what they spend.</figcaption>
     </figure>
-    <div class="qs">
-      <div class="q"><span class="qn">Question 1</span><h3>Which circuit is best for a given budget?</h3><p>Among all ways of connecting the models, which one gives the highest accuracy at a given average cost?</p></div>
-      <div class="q"><span class="qn">Question 2</span><h3>Can we learn it from data?</h3><p>The best circuit depends on how each model behaves on each prompt. Can we learn that from labelled examples?</p></div>
+  </div>
+</section>
+
+<!-- ============ LMCIRCUIT, FIRST LOOK ============ -->
+<section class="screen" id="lmcircuit" data-title="LMCircuit">
+  <div class="wrap">
+    <div class="single">
+      <h2><span class="hl">LMCircuit</span> learns the best circuit for each prompt</h2>
+      <p class="lede">LMCircuit reads the prompt, then decides which model to ask next and when to stop. It is fitted once from labelled prompts and recorded answers, and works at any budget.</p>
     </div>
+    <ol class="lmc-steps">
+      <li><span class="n">1</span><h3>Read the prompt</h3><p>A small prompt classifier guesses the label and which models will get it right.</p></li>
+      <li><span class="n">2</span><h3>Ask or stop</h3><p>A dynamic program picks the next model to ask, or stops.</p></li>
+      <li><span class="n">3</span><h3>Predict</h3><p>It answers once one more call is not worth its cost.</p></li>
+    </ol>
   </div>
 </section>
 
@@ -163,8 +172,8 @@
       <p class="lede">After each answer, the circuit either asks another model or stops and predicts. If we care about cost, asking one model at a time loses nothing.<sup class="fnref">1</sup></p>
       <p class="fn"><sup>1</sup> If we care about speed, asking several models in parallel is faster.</p>
     </div>
-    <figure class="fig" data-fig="step" aria-label="The hard prompt, step by step. At 54% harmful, stopping has a 46% chance of a mistake; asking Gemma 4 31B costs $0.09 per million tokens and lowers it to 12%, so the circuit asks. Gemma 4 31B answers harmful. At 90% harmful, asking another model would cost money and leave the chance of a mistake at 10%, so the circuit stops and answers harmful.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies; real prices per million input tokens. At each step the circuit weighs what each option costs against the chance of a mistake it leaves, and takes the best one.</figcaption>
+    <figure class="fig" data-fig="step" aria-label="LMCircuit on the hard prompt, step by step. Its prompt classifier starts at 54% harmful. Stopping has a 46% chance of a mistake; asking Gemma 4 31B costs $90 for one million prompts and lowers it to 12%, so the circuit asks. Gemma 4 31B answers harmful. At 90% harmful, asking another model would cost money and leave the chance of a mistake at 10%, so the circuit stops and answers harmful.">
+      <figcaption class="fig-cap" data-role="cap">LMCircuit on the hard prompt, starting from its prompt classifier's guess. Illustrative accuracies; costs for one million prompts. At each step the circuit compares what each option costs with the chance of a mistake it leaves.</figcaption>
     </figure>
   </div>
 </section>
@@ -174,10 +183,11 @@
   <div class="wrap split fig-wide">
     <div class="copy">
       <h2>The best circuit is the solution of a <span class="hl">dynamic program</span></h2>
-      <p class="lede">For each prompt, the dynamic program weighs the price of one more answer against how much that answer should lower the chance of a mistake. Make queries cheaper and the circuit asks more.</p>
+      <p class="lede">Each answer changes what the next call is worth, so the choices form a tree. The dynamic program finds the best tree by working backward from the predictions.</p>
+      <p>It weighs the cost of one more answer against how much that answer lowers the chance of a mistake. Prioritize accuracy and the circuit asks more. Prioritize cost and it asks less.</p>
     </div>
-    <figure class="fig" data-fig="dp" aria-label="The best circuit drawn as a tree, with a slider for the price per query. When queries are expensive the circuit predicts at once; as they get cheaper it asks the small model first and the large one only after answers that disagree. An amber path shows what it does on the hard prompt.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies and real prices, with no prompt classifier yet. Each stop on the slider is a price at which the best tree changes. The amber path is the one the hard prompt takes.</figcaption>
+    <figure class="fig" data-fig="dp" aria-label="The best circuit drawn as a tree, with a slider from prioritize cost to prioritize accuracy. When cost comes first the circuit predicts at once; as accuracy matters more it asks the small model first and the large one only after answers that disagree. An amber path shows what it does on the hard prompt.">
+      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies, costs for one million prompts, and no prompt classifier yet. Each stop on the slider gives a different best tree. The amber path is the one the hard prompt takes.</figcaption>
     </figure>
   </div>
 </section>
@@ -188,42 +198,25 @@
     <div class="copy">
       <h2>Any circuit gets better with a little <span class="hl">routing</span></h2>
       <p class="lede">Prompts differ in difficulty. Some are easy for every model and others split them, so one plan for every prompt wastes money.</p>
-      <p>LMCircuit adds a small prompt classifier. It reads the prompt and predicts the label and which models will get it right. It trains in a few minutes and runs on a CPU.</p>
+      <p>LMCircuit adds a small prompt classifier. It reads the prompt and predicts the label and which models will get it right. It trains in minutes and runs on a CPU.</p>
     </div>
-    <figure class="fig" data-fig="router" aria-label="An easy prompt and a hard prompt side by side. The prompt classifier is already sure about the easy one, so the circuit answers with no calls. On the hard one it is unsure, so the circuit asks only Gemma 4 31B, the model most likely to get it right. Without the prompt classifier, the same two prompts cost $0.062 and $0.152 per million tokens.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies; real prices per million input tokens. On the easy prompt the circuit asks no model. On the hard one it asks only Gemma 4 31B, the model most likely to be right.</figcaption>
+    <figure class="fig" data-fig="router" aria-label="An easy prompt and a hard prompt side by side. The prompt classifier is already sure about the easy one, so the circuit answers with no calls. On the hard one it is unsure, so the circuit asks only Gemma 4 31B, the model most likely to get it right. Without the prompt classifier, the same two prompts cost $62 and $152 for one million prompts.">
+      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies; costs for one million prompts. On the easy prompt the circuit asks no model. On the hard one it asks only Gemma 4 31B, the model most likely to be right.</figcaption>
     </figure>
   </div>
 </section>
 
-<!-- ============ LMCIRCUIT ============ -->
-<section class="screen" id="pieces" data-title="LMCircuit">
-  <div class="wrap">
-    <div class="single">
+<!-- ============ LMCIRCUIT, REVISITED ============ -->
+<section class="screen" id="pieces" data-title="How LMCircuit works">
+  <div class="wrap split fig-wide">
+    <div class="copy">
       <h2><span class="hl">LMCircuit</span> is a prompt classifier and a dynamic program</h2>
-      <p class="lede">One model of the prompts, fitted once, serves every budget.</p>
+      <p class="lede">We fit one model of the prompts, once. For any setting, from prioritize cost to prioritize accuracy, the dynamic program turns it into a circuit.</p>
+      <p>The prompt classifier reads a text embedding of the prompt (Qwen3-Embedding-0.6B) and the answers collected so far. It returns the chance the prompt is harmful and the chance each model answers harmful. It is trained on labelled prompts and recorded model answers. <button class="linkish" data-open="sheet-method">Technical details</button></p>
     </div>
-    <ul class="pieces">
-      <li>
-        <svg class="ic-dial" viewBox="0 0 46 46" aria-hidden="true"><path d="M7 30 A17 17 0 0 1 39 30" fill="none" stroke="var(--line-2)" stroke-width="5" stroke-linecap="round"/><path d="M7 30 A17 17 0 0 1 16 15.5" fill="none" stroke="var(--cost-0)" stroke-width="5" stroke-linecap="round"/><path d="M30 15.5 A17 17 0 0 1 39 30" fill="none" stroke="var(--cost-2)" stroke-width="5" stroke-linecap="round"/><line class="needle" x1="23" y1="27" x2="23" y2="11" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><circle cx="23" cy="27" r="2.6" fill="var(--ink)"/></svg>
-        <h3>Models</h3>
-        <p>Any LLM classifiers, each with a price per call.</p>
-        <a href="#instrument">Noisy instruments</a>
-      </li>
-      <li>
-        <svg class="ic-net" viewBox="0 0 46 46" aria-hidden="true"><g stroke="var(--line-2)" stroke-width="1.2"><line x1="8" y1="12" x2="22" y2="23"/><line x1="8" y1="23" x2="22" y2="23"/><line x1="8" y1="34" x2="22" y2="23"/></g><circle cx="8" cy="12" r="3.2" fill="var(--accent)"/><circle cx="8" cy="23" r="3.2" fill="var(--accent)"/><circle cx="8" cy="34" r="3.2" fill="var(--accent)"/><circle cx="22" cy="23" r="4" fill="var(--ink)"/><rect x="29" y="13" width="14" height="5" rx="2.5" fill="var(--line)"/><rect class="out" x="29" y="13" width="10" height="5" rx="2.5" fill="var(--belief)"/><rect x="29" y="21" width="14" height="4" rx="2" fill="var(--line)"/><rect class="out" x="29" y="21" width="8" height="4" rx="2" fill="var(--cost-0)"/><rect x="29" y="28" width="14" height="4" rx="2" fill="var(--line)"/><rect class="out" x="29" y="28" width="12" height="4" rx="2" fill="var(--cost-1)"/><rect x="29" y="35" width="14" height="4" rx="2" fill="var(--line)"/><rect class="out" x="29" y="35" width="6" height="4" rx="2" fill="var(--cost-2)"/></svg>
-        <h3>A prompt classifier</h3>
-        <p>Predicts the label and which models will answer the prompt correctly.</p>
-        <a href="#routing">A little routing</a>
-      </li>
-      <li>
-        <svg class="ic-tree" viewBox="0 0 46 46" aria-hidden="true"><path class="br" d="M23 6 L23 16 L11 24" fill="none" stroke="var(--belief)" stroke-width="2.4" stroke-linecap="round"/><path class="br" d="M23 16 L35 24" fill="none" stroke="var(--line-2)" stroke-width="2.4" stroke-linecap="round"/><path class="br l2" d="M11 24 L5 36" fill="none" stroke="var(--line-2)" stroke-width="2.4" stroke-linecap="round"/><path class="br l2" d="M11 24 L17 36" fill="none" stroke="var(--belief)" stroke-width="2.4" stroke-linecap="round"/><circle cx="23" cy="6" r="3.5" fill="var(--ink)"/><circle cx="11" cy="24" r="3.5" fill="var(--cost-0)"/><circle cx="35" cy="24" r="3.5" fill="var(--cost-1)"/><circle class="leaf" cx="5" cy="36" r="3" fill="var(--line-2)"/><circle class="leaf" cx="17" cy="36" r="3" fill="var(--belief)"/></svg>
-        <h3>A dynamic program</h3>
-        <p>Uses those predictions to decide whom to ask and when to stop, at any budget.</p>
-        <a href="#dp">The best circuit</a>
-      </li>
-    </ul>
-    <p class="pieces-note">The prompt classifier reads a text embedding of the prompt (Qwen3-Embedding-0.6B) and is trained on labelled prompts and recorded model answers. <button class="linkish" data-open="sheet-method">Technical details</button></p>
+    <figure class="fig" data-fig="glue" aria-label="Two panels. Fit once: the prompt and the answers so far enter a small network, which returns the chance the prompt is harmful and the chance each model answers harmful. Generate: for a chosen setting, the dynamic program turns the network's outputs into a circuit for the prompt.">
+      <figcaption class="fig-cap" data-role="cap">The network is fitted once. Changing the setting only reruns the dynamic program.</figcaption>
+    </figure>
   </div>
 </section>
 
@@ -234,19 +227,19 @@
       <h2>Higher accuracy at nearly every <span class="hl">budget</span></h2>
       <p class="lede">LMCircuit is more accurate than every single model and than eight routing and cascading methods at nearly every budget. Here are five of the seven tasks: four judged by open-weight models and one by decision models.</p>
     </div>
-    <figure class="figure fig" data-fig="frontier" id="frontier-fig" aria-label="Accuracy against average cost per item on five tasks, one tab each. Each model is a point; majority voting and eight routing and cascading methods follow; the LMCircuit curve lies above them, with three budget markers.">
-      <figcaption class="fig-cap" data-role="cap">Values read from Figure 4 of the paper. Bars are 95% confidence intervals. The three markers show how often LMCircuit calls each model at a low, a medium and a high budget.</figcaption>
+    <figure class="figure fig" data-fig="frontier" id="frontier-fig" aria-label="Balanced accuracy against average cost per item on five tasks, one tab each. Each model is a point; majority voting and eight routing and cascading methods follow; the LMCircuit curve lies above them, with three budget markers.">
+      <figcaption class="fig-cap" data-role="cap">Values read from Figure 4 of the paper, which reports balanced accuracy (the average of the accuracy on each class). Bars are 95% confidence intervals. The three markers show how often LMCircuit calls each model at a low, a medium and a high budget.</figcaption>
     </figure>
     <div class="results-links">
       <button class="btn small" data-open="sheet-data">Datasets and models</button>
       <button class="btn small" data-open="sheet-refs">Baselines</button>
       <a class="btn small" href="./img/frontiers.pdf" target="_blank" rel="noopener noreferrer">All seven tasks (PDF)</a>
     </div>
-    <p class="runtime-note">LMCircuit trains in 1 to 3 minutes. Several of the baselines take hours.</p>
+    <p class="runtime-note">LMCircuit trains in 3 minutes or less on every task. Several of the baselines take hours.</p>
     <details class="more">
       <summary>Time to build each method</summary>
       <figure class="figure" id="runtime-fig">
-        <img src="./img/runtime.png?v=2" alt="Time to construct each method on the seven tasks. LMCircuit fits in one to three minutes; several routing and cascading baselines take hours." loading="lazy"/>
+        <img src="./img/runtime.png?v=2" alt="Time to construct each method on the seven tasks. LMCircuit fits in 10 seconds to 3 minutes; FrugalGPT and Cascade Routing take 2 to 7 hours." loading="lazy"/>
       </figure>
     </details>
   </div>
@@ -258,7 +251,7 @@
     <div class="statement">
       <h2>We are going through a <span class="hl">revolution</span> in classification.</h2>
       <p class="lede">Hundreds of models can now label text on demand, at prices that differ more than a thousandfold. The best prediction comes from combining them well.</p>
-      <p class="rule">Ask the model that gives the most information per dollar. Stop when you are sure.</p>
+      <p class="rule">We show that the best circuit leans on the model that gives the most information per dollar.</p>
     </div>
   </div>
 </section>
@@ -268,42 +261,40 @@
   <div class="wrap">
     <div class="authors-head">
       <h2>Authors</h2>
-      <!-- every card shows the photo or its 16-bit version; hover or focus shows the other one -->
-      <div class="seg" role="radiogroup" aria-label="Portraits" data-portrait-switch hidden><button type="button" role="radio" aria-checked="true" data-view="photo">Photos</button><button type="button" role="radio" aria-checked="false" data-view="pixel">16-bit</button></div>
     </div>
-    <div class="author-grid" data-view="photo">
+    <div class="author-grid">
       <div class="author" data-slug="hadi-khalaf">
-        <div class="portrait"><img class="ph" src="./img/authors/hadi-khalaf.jpg" alt="Hadi Khalaf" width="480" height="480" decoding="async"/><img class="px" src="./img/authors/hadi-khalaf-16bit.png" alt="Hadi Khalaf, 16-bit portrait" aria-hidden="true" width="384" height="384" decoding="async"/></div>
+        <div class="portrait"><img class="ph" src="./img/authors/hadi-khalaf.jpg" alt="Hadi Khalaf" width="480" height="480" decoding="async"/></div>
         <h3><a href="https://hadikhalaf.com/">Hadi Khalaf</a><sup class="eq">*</sup></h3>
         <div class="role"><span>Harvard SEAS</span><span>Kempner Institute</span></div>
         <div class="logos"><img class="college-logo" src="./img/seaslogo.png" alt="Harvard SEAS" onerror="this.style.display='none'"/><img class="college-logo" src="./img/kempner.png" alt="Kempner Institute" onerror="this.style.display='none'"/></div>
       </div>
       <div class="author" data-slug="sajani-vithana">
-        <div class="portrait"><img class="ph" src="./img/authors/sajani-vithana.jpg" alt="Sajani Vithana" width="480" height="480" decoding="async"/><img class="px" src="./img/authors/sajani-vithana-16bit.png" alt="Sajani Vithana, 16-bit portrait" aria-hidden="true" width="384" height="384" decoding="async"/></div>
+        <div class="portrait"><img class="ph" src="./img/authors/sajani-vithana.jpg" alt="Sajani Vithana" width="480" height="480" decoding="async"/></div>
         <h3><a href="https://sajani-vithana.github.io/website/">Sajani Vithana</a><sup class="eq">*</sup></h3>
         <div class="role">Harvard SEAS</div>
         <div class="logos"><img class="college-logo" src="./img/seaslogo.png" alt="Harvard SEAS" onerror="this.style.display='none'"/></div>
       </div>
       <div class="author" data-slug="kunal-talreja">
-        <div class="portrait"><img class="ph" src="./img/authors/kunal-talreja.jpg" alt="Kunal Talreja" width="480" height="480" decoding="async"/><img class="px" src="./img/authors/kunal-talreja-16bit.png" alt="Kunal Talreja, 16-bit portrait" aria-hidden="true" width="384" height="384" decoding="async"/></div>
+        <div class="portrait"><img class="ph" src="./img/authors/kunal-talreja.jpg" alt="Kunal Talreja" width="480" height="480" decoding="async"/></div>
         <h3><a href="https://sites.google.com/view/viveck-cadambe/members">Kunal Talreja</a></h3>
         <div class="role">Georgia Institute of Technology</div>
         <div class="logos"><img class="college-logo" src="./img/gtlogo.png" alt="Georgia Tech" onerror="this.style.display='none'"/></div>
       </div>
       <div class="author" data-slug="haewon-jeong">
-        <div class="portrait"><img class="ph" src="./img/authors/haewon-jeong.jpg" alt="Haewon Jeong" width="480" height="480" decoding="async"/><img class="px" src="./img/authors/haewon-jeong-16bit.png" alt="Haewon Jeong, 16-bit portrait" aria-hidden="true" width="384" height="384" decoding="async"/></div>
+        <div class="portrait"><img class="ph" src="./img/authors/haewon-jeong.jpg" alt="Haewon Jeong" width="480" height="480" decoding="async"/></div>
         <h3><a href="https://www.haewonjeong.com/">Haewon Jeong</a></h3>
         <div class="role"><span>UC Santa Barbara</span><span>Flatiron Institute</span></div>
         <div class="logos"><img class="college-logo" src="./img/uc-santa-barbara.jpg" alt="UC Santa Barbara" onerror="this.style.display='none'"/><img class="college-logo" src="./img/flatiron.png" alt="Flatiron Institute" onerror="this.style.display='none'"/></div>
       </div>
       <div class="author" data-slug="viveck-cadambe">
-        <div class="portrait"><img class="ph" src="./img/authors/viveck-cadambe.jpg" alt="Viveck R. Cadambe" width="480" height="480" decoding="async"/><img class="px" src="./img/authors/viveck-cadambe-16bit.png" alt="Viveck R. Cadambe, 16-bit portrait" aria-hidden="true" width="384" height="384" decoding="async"/></div>
+        <div class="portrait"><img class="ph" src="./img/authors/viveck-cadambe.jpg" alt="Viveck R. Cadambe" width="480" height="480" decoding="async"/></div>
         <h3><a href="https://sites.google.com/view/viveck-cadambe">Viveck R. Cadambe</a></h3>
         <div class="role">Georgia Institute of Technology</div>
         <div class="logos"><img class="college-logo" src="./img/gtlogo.png" alt="Georgia Tech" onerror="this.style.display='none'"/></div>
       </div>
       <div class="author" data-slug="flavio-calmon">
-        <div class="portrait"><img class="ph" src="./img/authors/flavio-calmon.jpg" alt="Flavio Calmon" width="480" height="480" decoding="async"/><img class="px" src="./img/authors/flavio-calmon-16bit.png" alt="Flavio Calmon, 16-bit portrait" aria-hidden="true" width="384" height="384" decoding="async"/></div>
+        <div class="portrait"><img class="ph" src="./img/authors/flavio-calmon.jpg" alt="Flavio Calmon" width="480" height="480" decoding="async"/></div>
         <h3><a href="https://people.seas.harvard.edu/~flavio/">Flavio Calmon</a></h3>
         <div class="role">Harvard SEAS</div>
         <div class="logos"><img class="college-logo" src="./img/seaslogo.png" alt="Harvard SEAS" onerror="this.style.display='none'"/></div>
@@ -440,16 +431,17 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
-<script src="./assets/core.js?v=6" defer></script>
-<script src="./assets/fig-hero.js?v=6" defer></script>
-<script src="./assets/fig-hero-pixel.js?v=6" defer></script>
-<script src="./assets/fig-noisy.js?v=6" defer></script>
-<script src="./assets/fig-circuits.js?v=6" defer></script>
-<script src="./assets/fig-step.js?v=6" defer></script>
-<script src="./assets/fig-dp.js?v=6" defer></script>
-<script src="./assets/fig-router.js?v=6" defer></script>
-<script src="./assets/fig-frontier.js?v=6" defer></script>
-<script src="./assets/authors.js?v=6" defer></script>
+<script src="./assets/core.js?v=7" defer></script>
+<script src="./assets/fig-hero.js?v=7" defer></script>
+<script src="./assets/fig-uses.js?v=7" defer></script>
+<script src="./assets/fig-noisy.js?v=7" defer></script>
+<script src="./assets/fig-question.js?v=7" defer></script>
+<script src="./assets/fig-circuits.js?v=7" defer></script>
+<script src="./assets/fig-step.js?v=7" defer></script>
+<script src="./assets/fig-dp.js?v=7" defer></script>
+<script src="./assets/fig-router.js?v=7" defer></script>
+<script src="./assets/fig-glue.js?v=7" defer></script>
+<script src="./assets/fig-frontier.js?v=7" defer></script>
 <script>
 document.getElementById('yr').textContent = new Date().getFullYear();
 

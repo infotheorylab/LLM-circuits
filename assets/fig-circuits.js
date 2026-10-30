@@ -76,7 +76,7 @@
       } }
   ];
   var MAX_SPEND = 0;           // what asking every model on every prompt costs: the scoreboard's full bar
-  M.forEach(function (m) { MAX_SPEND += m.price * ORDER.length; });
+  M.forEach(function (m) { MAX_SPEND += m.cost * ORDER.length; });
 
   /* An orthogonal path through pts with rounded corners. */
   function route(pts, r) {
@@ -399,7 +399,7 @@
         // a cascade hands the prompt down the chain; the others send it from the left bus
         await Promise.all(grp.map(function (i) { return travel(g > 0 && c.chain ? wires.chain[i] : wires.left[i]); }));
         if (!alive()) return null;
-        grp.forEach(function (i) { stations[i].st.state('on'); row.add(M[i].price); asked.push(i); });
+        grp.forEach(function (i) { stations[i].st.state('on'); row.add(M[i].cost); asked.push(i); });
         await Promise.all(grp.map(function (i) { return stations[i].slot.fill(p.answers[i]); }));
         await h.sleep(200);
       }

@@ -30,7 +30,7 @@
   var MODELS = LC.MODELS, P = LC.PROMPTS.hard;
   var PAD = 1.5;                 // keeps outer strokes inside the viewBox
   var ROW_H = 36, ROW_H2 = 54, ROW_GAP = 6, INSET = 22;
-  var METER_W = 84;              // the cost meter's column on the right
+  var METER_W = 116;             // the cost meter's column on the right
 
   function child(key, i, x) { return key.substr(0, i) + x + key.substr(i + 1); }
   function pct(e) { return Math.round(e * 100) + '%'; }
@@ -59,7 +59,7 @@
       var r1 = memo[child(key, i, 1)], r0 = memo[child(key, i, 0)];
       out.push({
         act: 'ask', i: i, m: m,
-        cost: m.price + ph * r1.cost + (1 - ph) * r0.cost,
+        cost: m.cost + ph * r1.cost + (1 - ph) * r0.cost,
         err: ph * r1.err + (1 - ph) * r0.err,
         then: after(memo, key, i),
         chosen: s.act === 'ask' && s.i === i
@@ -284,7 +284,7 @@
         var st = b.s.step;
         await fade(b.ans, 300, alive);
         if (!alive()) return;
-        meter.add(MODELS[st.i].price);
+        meter.add(MODELS[st.i].cost);
         // moved frame by frame here, so that a replay mid-move is not overridden
         var from = b.s.q, to = LC.belief.post(b.s.q, st.i, st.x, P.acc);
         await h.tween(650, function (t) { if (alive()) bar.set(from + (to - from) * t, true); });

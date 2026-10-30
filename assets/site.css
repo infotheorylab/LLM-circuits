@@ -13,8 +13,8 @@
   --accent-2:   #4E6BE0;
   --accent-soft:rgba(42,75,208,0.10);
   --accent-brd: rgba(42,75,208,0.32);
-  --confirm:    #2E7D57;
-  --alert:      #B4472F;
+  --confirm:    #087F68;
+  --alert:      #C23D59;
   --amber:      #C08A1A;
   --crimson:    #B3143C;   /* highlighted words in titles */
 
@@ -25,8 +25,12 @@
   --cost-2:     var(--alert);
   --belief:     var(--amber);
   --belief-ink: #8A6212;
+  --wire:       #91A7DE;   /* a wire at rest */
+  --wire-live:  #3155EB;   /* the signal moving along it */
+  --block-1:    #3155EB;   /* the mid-priced model's block (the accent is a shade darker) */
+  --navy:       #17284D;   /* the prediction */
 
-  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-display: "Manrope", system-ui, sans-serif;
   --font-body:    "Inter", system-ui, sans-serif;
   --font-mono:    "Space Mono", ui-monospace, monospace;
 
@@ -222,6 +226,14 @@ code { font-family: var(--font-mono); font-size: .86em; color: var(--ink); backg
 .linkish:hover { text-decoration-color: var(--accent); }
 
 /* three pieces (recipe) */
+/* LMCircuit, first look: three steps in a row, joined by a wire */
+.lmc-steps { list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; max-width: 980px; counter-reset: none; }
+.lmc-steps li { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px 22px; }
+.lmc-steps li + li::before { content: ""; position: absolute; left: -29px; top: 38px; width: 30px; border-top: 2.5px dashed var(--wire-live); }
+.lmc-steps .n { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: #FFFFFF; font: 800 16px/1 var(--font-display); }
+.lmc-steps h3 { font-size: 20px; margin: 12px 0 6px; }
+.lmc-steps p { font-size: 16px; line-height: 1.55; margin: 0; color: var(--ink-2); }
+@media (max-width: 760px) { .lmc-steps { grid-template-columns: 1fr; gap: 14px; } .lmc-steps li + li::before { display: none; } }
 .pieces { list-style: none; margin: 36px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 900px; column-gap: 52px; row-gap: 26px; }
 .pieces li { position: relative; }
 .pieces li + li::before { content: "+"; position: absolute; left: -36px; top: 8px; font: 500 30px/1 var(--font-display); color: var(--muted); }
@@ -380,14 +392,23 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 
 
 /* ================= revision: shared kit (assets/core.js LC.kit) ================= */
-.fig .station .st-body { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1.2; transition: stroke .3s ease, fill .3s ease; }
-.fig .station .st-stripe { fill: var(--line-2); }
-.fig .station.t0 .st-stripe { fill: var(--cost-0); } .fig .station.t1 .st-stripe { fill: var(--cost-1); } .fig .station.t2 .st-stripe { fill: var(--cost-2); }
-.fig .station .st-name { font-family: var(--font-display); font-size: 15.5px; font-weight: 600; fill: var(--ink); }
-.fig .station .st-sub { font-size: 14px; fill: var(--muted); }
-.fig .station.active .st-body { stroke: var(--accent); stroke-width: 2.4; }
-.fig .station.done .st-body { stroke: var(--ink-2); }
-.fig .station.dim { opacity: .38; }
+/* model stations: solid blocks in the tier colour, as in the circuit diagrams */
+.fig .station .st-body { stroke-width: 2; transition: stroke .3s ease, filter .3s ease; }
+.fig .station.t0 .st-body { fill: var(--cost-0); stroke: var(--cost-0); }
+.fig .station.t1 .st-body { fill: var(--block-1); stroke: var(--block-1); }
+.fig .station.t2 .st-body { fill: var(--cost-2); stroke: var(--cost-2); }
+.fig .station .st-name { font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: -.01em; fill: #FFFFFF; }
+.fig .station .st-sub { font-size: 14px; font-weight: 500; fill: #FFFFFF; opacity: .92; }
+.fig .station.active .st-body { stroke: var(--navy); stroke-width: 2.5; filter: drop-shadow(0 0 6px rgba(49,85,235,.45)); }
+.fig .station.dim { opacity: .3; }
+/* wires: quiet at rest, a moving dashed signal when live */
+.fig .cw { fill: none; stroke: var(--wire); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; transition: stroke .3s ease, opacity .3s ease; }
+.fig .cw.live { stroke: var(--wire-live); stroke-width: 3.5; stroke-dasharray: 8 10; animation: lc-flow 1.2s linear infinite; }
+.fig .cw.off { opacity: .35; }
+.fig .cw-head { fill: var(--wire-live); }
+@keyframes lc-flow { to { stroke-dashoffset: -36; } }
+.fig .lc-net line { stroke: var(--wire); stroke-width: 1.2; }
+.fig .lc-net circle { fill: var(--wire-live); }
 .fig .station { transition: opacity .35s ease; }
 .fig .chip-g .chip-t { font-size: 14px; font-weight: 700; letter-spacing: .04em; }
 .fig .chip-g.h .chip-t { fill: var(--alert); } .fig .chip-g.s .chip-t { fill: var(--confirm); }

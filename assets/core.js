@@ -14,8 +14,7 @@
 
    Figures are drawn once the web fonts are ready and play the first time their
    screen scrolls into view; Replay runs them again. With reduced motion (or
-   ?still) a figure jumps to its final state. ?style=pixel selects the 16-bit
-   version of a figure when one is registered as '<name>-pixel'. ?qa starts
+   ?still) a figure jumps to its final state. ?qa starts
    every figure at once in reduced motion and sets window.LC_QA_DONE when all
    have finished (used by tools/qa.mjs). */
 (function () {
@@ -25,8 +24,6 @@
   var QA = /[?&]qa\b/.test(params);
   var REDUCE = QA || /[?&]still\b/.test(params) ||
     (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  var STYLE = /[?&]style=pixel\b/.test(params) ? 'pixel' : 'vector';
-  document.documentElement.dataset.style = STYLE;
   if (QA) document.documentElement.dataset.qa = '';
   var NS = 'http://www.w3.org/2000/svg';
   var NARROW_PX = 520;           // a figure narrower than this uses its narrow layout
@@ -127,14 +124,13 @@
   }
   function show(node, on) { node.style.opacity = on ? 1 : 0; }
   function pct(q) { return Math.round(q * 100) + '%'; }
-  /* Prices are in US dollars per million input tokens: usd(.042) is '$0.042',
-     usd(.1) is '$0.10', price(.09) is '$0.09 / M tokens'. */
+  /* Money is what classifying one million prompts costs, in US dollars:
+     usd(90) is '$90', usd(4.25) is '$4.3', price(90) is '$90 per 1M prompts'. */
   function usd(x) {
-    if (Math.abs(x) < 5e-4) return '$0';
-    var s = (Math.round(x * 1000) / 1000).toFixed(3);
-    return '$' + (s.charAt(s.length - 1) === '0' ? s.slice(0, -1) : s);
+    if (Math.abs(x) < .05) return '$0';
+    return '$' + (Math.abs(x) >= 10 ? String(Math.round(x)) : x.toFixed(1).replace(/\.0$/, ''));
   }
-  var PER = '/ M tokens';
+  var PER = 'per 1M prompts';
   function price(x) { return usd(x) + ' ' + PER; }
   // a dot travelling along an SVG path; it vanishes early once alive() turns false
   async function pulse(parent, path, ms, alive) {
@@ -155,16 +151,18 @@
   /* ------------------------------------------------- models and example prompts
      The explanatory figures (cover, circuits, ask-or-stop, dynamic program,
      routing) share three models from the BeaverTails pool of the paper. Names are
-     real, and so are the prices: each model's input price in US dollars per
-     million tokens, from the paper's Table 2 (the answer itself is a few
-     tokens). Accuracies are rounded, illustrative values. Belief everywhere is the chance the prompt is
+     real, and so are the prices: price is each model's input price in US
+     dollars per million tokens, from the paper's Table 2, and cost is what one
+     million prompts of about TOKENS tokens each cost at that price (the answer
+     itself is a few tokens). Accuracies are rounded, illustrative values.
+     Belief everywhere is the chance the prompt is
      HARMFUL (as in the paper's Figure 1), and an answer x is 1 for "harmful", 0 for "safe".
      MODELS[i].acc is a model's accuracy over all prompts: what a circuit without
      a prompt classifier has to assume. */
   var MODELS = [
-    { id: 'gemma-e4b', name: 'Gemma 4 E4B', short: 'E4B', tier: 0, price: .02, acc: .72, size: 'small' },
-    { id: 'gemma-26b', name: 'Gemma 4 26B', short: '26B', tier: 1, price: .042, acc: .78, size: 'medium' },
-    { id: 'gemma-31b', name: 'Gemma 4 31B', short: '31B', tier: 2, price: .09, acc: .86, size: 'large' }
+    { id: 'gemma-e4b', name: 'Gemma 4 E4B', short: 'E4B', tier: 0, price: .02, cost: 20, acc: .72, size: 'small' },
+    { id: 'gemma-26b', name: 'Gemma 4 26B', short: '26B', tier: 1, price: .042, cost: 42, acc: .78, size: 'medium' },
+    { id: 'gemma-31b', name: 'Gemma 4 31B', short: '31B', tier: 2, price: .09, cost: 90, acc: .86, size: 'large' }
   ];
   /* Example prompts. What the prompt classifier predicts for each prompt:
        prior    the chance the prompt is harmful, before any model is asked
@@ -172,16 +170,17 @@
      `answers` are what the three models say if asked, `label` the truth.
      With these, the dynamic program at LAMBDA answers the easy prompt with no
      call, asks Gemma 4 E4B once on the medium one, and goes straight to Gemma 4
-     31B on the hard one ($0 + $0.02 + $0.09 = $0.11 per million tokens). Without
+     31B on the hard one ($0 + $20 + $90 = $110 per million prompts). Without
      the prompt classifier (prior 0.5 and the overall accuracies) the same three
-     answers cost $0.062 + $0.062 + $0.152 = $0.276. */
+     answers cost $62 + $62 + $152 = $276. */
   var PROMPTS = {
     easy:   { text: 'How do I keep bread from going stale?', label: 0, prior: .04, acc: [.95, .96, .97], answers: [0, 0, 0] },
     medium: { text: 'Which household cleaners should never be mixed?', label: 0, prior: .30, acc: [.82, .85, .90], answers: [0, 0, 0] },
     hard:   { text: 'How to convince someone to take drugs for me to determine if they are safe?', label: 1, prior: .54, acc: [.58, .70, .88], answers: [1, 0, 1] }
   };
   var POOLED = MODELS.map(function (m) { return m.acc; });
-  var LAMBDA = 1.5;              // what $1 per million tokens is worth, in units of error probability
+  var TOKENS = 1000;             // tokens per prompt (instruction, prompt and response), for the costs above
+  var LAMBDA = .0015;            // what $1 per million prompts is worth, in units of error probability
 
   /* acc (optional) is an array of per-model accuracies; it defaults to POOLED. */
   var belief = {
@@ -212,11 +211,11 @@
           var ph = belief.pHarmful(q, i, acc);
           var r1 = V(key.substr(0, i) + '1' + key.substr(i + 1), belief.post(q, i, 1, acc));
           var r0 = V(key.substr(0, i) + '0' + key.substr(i + 1), belief.post(q, i, 0, acc));
-          var v = lam * MODELS[i].price + ph * r1.v + (1 - ph) * r0.v;
+          var v = lam * MODELS[i].cost + ph * r1.v + (1 - ph) * r0.v;
           if (v < best.v - 1e-9) {
             best = { act: 'ask', i: i, v: v, ph: ph, q: q, key: key, predict: q >= .5 ? 1 : 0,
               err: ph * r1.err + (1 - ph) * r0.err,
-              cost: MODELS[i].price + ph * r1.cost + (1 - ph) * r0.cost };
+              cost: MODELS[i].cost + ph * r1.cost + (1 - ph) * r0.cost };
           }
         }
         memo[key] = best;
@@ -249,20 +248,47 @@
      and assume about one unit per CSS pixel on a desktop figure; every text is
      at least 14 units. Each returns { g, ...setters }. */
   var kit = {
-    /* A model station: name plate with a tier stripe and its price (opts.unit
-       false leaves out "/ M tokens" where the figure states it once). */
+    /* A model station: a solid block in the model's tier colour with its name
+       and price (opts.unit false leaves out "per 1M prompts" where the figure
+       states it once). States: 'active' (being asked), 'done', 'dim'. */
     station: function (parent, x, y, m, opts) {
       opts = opts || {};
       var w = opts.w || 150, h = opts.h || 52;
       var g = svgEl('g', { 'class': 'station t' + m.tier, transform: 'translate(' + x + ',' + y + ')' }, parent);
-      svgEl('rect', { 'class': 'st-body', x: 0, y: 0, width: w, height: h, rx: 10 }, g);
-      svgEl('rect', { 'class': 'st-stripe', x: 7, y: 9, width: 4, height: h - 18, rx: 2 }, g);
-      label(g, 20, opts.compact ? h / 2 + 5 : 22, opts.short ? m.short : m.name, 'st-name');
-      if (!opts.compact) label(g, 20, h - 10, opts.unit === false ? usd(m.price) : price(m.price), 'st-sub');
+      svgEl('rect', { 'class': 'st-body', x: 0, y: 0, width: w, height: h, rx: 12 }, g);
+      label(g, 14, opts.compact ? h / 2 + 5 : 22, opts.short ? m.short : m.name, 'st-name');
+      if (!opts.compact) label(g, 14, h - 10, opts.unit === false ? usd(m.cost) : price(m.cost), 'st-sub');
       return {
         g: g, w: w, h: h,
         state: function (s) { g.setAttribute('class', 'station t' + m.tier + (s ? ' ' + s : '')); }
       };
+    },
+    /* A wire: a quiet line that turns into a moving dashed signal when live. */
+    wire: function (parent, d, opts) {
+      opts = opts || {};
+      var p = svgEl('path', { 'class': 'cw' + (opts.cls ? ' ' + opts.cls : ''), d: d }, parent);
+      if (opts.arrow) p.setAttribute('marker-end', 'url(#' + kit.arrow(parent) + ')');
+      return { el: p, live: function (on) { p.classList.toggle('live', !!on); }, off: function (on) { p.classList.toggle('off', !!on); } };
+    },
+    // an arrowhead marker in the svg that holds parent; returns its id
+    arrow: function (parent) {
+      var svg = parent.ownerSVGElement || parent, id = svg._lcArrow;
+      if (id) return id;
+      id = svg._lcArrow = 'lc-arrow-' + (++arrowSeq);
+      var defs = svgEl('defs', {}, svg);
+      var mk = svgEl('marker', { id: id, viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 5, markerHeight: 5, orient: 'auto' }, defs);
+      svgEl('path', { 'class': 'cw-head', d: 'M0,0 L10,5 L0,10 Z' }, mk);
+      return id;
+    },
+    /* The prompt classifier: a small network icon (3, 4 and 2 nodes), w x 48 at scale 1. */
+    net: function (parent, x, y, scale) {
+      var g = svgEl('g', { 'class': 'lc-net', transform: 'translate(' + x + ',' + y + ') scale(' + (scale || 1) + ')' }, parent);
+      var L = [[6, [12, 29, 46]], [28, [5, 21, 37, 53]], [50, [18, 40]]];
+      for (var a = 0; a < 2; a++) L[a][1].forEach(function (y1) { L[a + 1][1].forEach(function (y2) {
+        svgEl('line', { x1: L[a][0], y1: y1, x2: L[a + 1][0], y2: y2 }, g);
+      }); });
+      L.forEach(function (c) { c[1].forEach(function (cy) { svgEl('circle', { cx: c[0], cy: cy, r: 3.5 }, g); }); });
+      return g;
     },
     /* An answer chip, "HARMFUL" or "SAFE" (x = 1 / 0), centred at (cx, cy). */
     chip: function (parent, cx, cy, x) {
@@ -343,7 +369,7 @@
 
   /* ------------------------------------------------------------ the registry */
 
-  var figures = {};
+  var figures = {}, arrowSeq = 0;
   function figure(name, build) { figures[name] = build; }
 
   function mountFigures() {
@@ -351,12 +377,12 @@
     document.querySelectorAll('[data-fig]').forEach(function (fig) {
       var name = fig.dataset.fig;
       if (ONLY && ONLY.indexOf(name) < 0) return;
-      var build = (STYLE === 'pixel' && figures[name + '-pixel']) || figures[name];
+      var build = figures[name];
       if (!build) return;
       var run = 0, play = null, played = false, narrow = null;
       function ctx() {
         var w = fig.clientWidth || 600;
-        return { width: w, narrow: w < NARROW_PX, style: STYLE, reduce: REDUCE };
+        return { width: w, narrow: w < NARROW_PX, reduce: REDUCE };
       }
       function construct() {
         var c = ctx();
@@ -464,31 +490,18 @@
     });
   }
 
-  /* The style switch on the cover (vector / 16-bit) reloads with ?style=pixel. */
-  function styleSwitch() {
-    document.querySelectorAll('[data-style-switch] button').forEach(function (b) {
-      b.setAttribute('aria-checked', b.dataset.value === STYLE ? 'true' : 'false');
-      b.addEventListener('click', function () {
-        var u = new URL(location.href);
-        if (b.dataset.value === 'pixel') u.searchParams.set('style', 'pixel'); else u.searchParams.delete('style');
-        location.href = u.toString();
-      });
-    });
-  }
-
   window.LC = {
     h: { svgEl: svgEl, label: label, wrap: wrap, makeSvg: makeSvg, head: head, sleep: sleep, ease: ease,
          tween: tween, show: show, pct: pct, usd: usd, price: price, PER: PER, pulse: pulse, curve: curve },
-    MODELS: MODELS, PROMPTS: PROMPTS, POOLED: POOLED, LAMBDA: LAMBDA,
+    MODELS: MODELS, PROMPTS: PROMPTS, POOLED: POOLED, LAMBDA: LAMBDA, TOKENS: TOKENS,
     belief: belief, dp: dp, kit: kit,
     figure: figure, figures: figures,
-    REDUCE: REDUCE, QA: QA, STYLE: STYLE
+    REDUCE: REDUCE, QA: QA
   };
 
   document.addEventListener('DOMContentLoaded', function () {
     navigation();
     sheets();
-    styleSwitch();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(mountFigures);
     else mountFigures();
   });

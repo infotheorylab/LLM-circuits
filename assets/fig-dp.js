@@ -32,11 +32,11 @@
   function child(key, i, x) { return key.substr(0, i) + x + key.substr(i + 1); }
 
   // scan prices from high to low on a geometric grid and keep each new tree
-  // (lam is what $1 per million tokens is worth in chance of a mistake)
+  // (lam is what $1 per million prompts is worth in chance of a mistake)
   var STOPS = (function () {
     var out = [], last = null;
     for (var k = 0; k <= 160; k++) {
-      var lam = 25 * Math.pow(0.002, k / 160);
+      var lam = 0.025 * Math.pow(0.002, k / 160);
       var memo = LC.dp.solve(PRIOR, lam, ACC), s = shape(memo, ROOT_KEY);
       if (s !== last) { out.push({ lam: lam, memo: memo }); last = s; }
     }
@@ -73,7 +73,7 @@
     var nameW = Math.max.apply(null, MODELS.map(function (m) { return label(probe, 0, 0, m.name, 'st-name').getComputedTextLength(); }));
     // the price line as kit.station draws it
     var priceW = Math.max.apply(null, MODELS.map(function (m) {
-      return label(probe, 0, 0, h.usd(m.price), 'st-sub').getComputedTextLength();
+      return label(probe, 0, 0, h.usd(m.cost), 'st-sub').getComputedTextLength();
     }));
     var leafProbe = svgEl('g', { 'class': 'dpx-leaf' }, svg);
     var leafTextW = Math.max(label(leafProbe, 0, 0, 'harmful', 'v').getComputedTextLength(),
@@ -210,7 +210,7 @@
 
       // what this prompt costs on its path
       var spent = 0, leaf = null;
-      walk(root, function (n) { if (n.on && n.r.act === 'ask' && !n.ghost) spent += MODELS[n.r.i].price; if (n.on && !n.kids.length) leaf = n; });
+      walk(root, function (n) { if (n.on && n.r.act === 'ask' && !n.ghost) spent += MODELS[n.r.i].cost; if (n.on && !n.kids.length) leaf = n; });
       var spentT = label(amber, leaf.x, leaf.bottom + 24, 'spent ' + h.usd(spent), 'dpx-spent', { 'text-anchor': 'middle' });
       return { g: g, root: root, items: items, path: path, spent: spentT };
     }

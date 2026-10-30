@@ -248,7 +248,7 @@
         if (!ok()) return;
         await showChip(i, s.x);
         await wait(200);
-        await pay(m.price);
+        await pay(m.cost);
         if (!ok()) return;
         ghost.setAttribute('cx', barW * s.q);
         ghost.removeAttribute('visibility');
