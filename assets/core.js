@@ -141,32 +141,42 @@
   }
 
   /* ------------------------------------------------- models and example prompts
-     The explanatory figures (cover, ask-or-stop, dynamic program, routing) share
-     three models from the BeaverTails pool of the paper. Names are real; the
-     accuracies are rounded, illustrative values, and cost is in coins per call
-     (relative cost). Belief everywhere is the chance the response is HARMFUL,
-     and an answer x is 1 for "harmful", 0 for "safe". */
+     The explanatory figures (cover, circuits, ask-or-stop, dynamic program,
+     routing) share three models from the BeaverTails pool of the paper. Names are
+     real; accuracies are rounded, illustrative values, and cost is in coins per
+     call (relative cost). Belief everywhere is the chance the response is
+     HARMFUL, and an answer x is 1 for "harmful", 0 for "safe".
+     MODELS[i].acc is a model's accuracy over all prompts: what a circuit without
+     a prompt classifier has to assume. */
   var MODELS = [
     { id: 'gemma-e4b', name: 'Gemma 4 E4B', short: 'E4B', tier: 0, coins: 1, acc: .72, size: 'small' },
     { id: 'gemma-26b', name: 'Gemma 4 26B', short: '26B', tier: 1, coins: 2, acc: .78, size: 'medium' },
     { id: 'gemma-31b', name: 'Gemma 4 31B', short: '31B', tier: 2, coins: 5, acc: .86, size: 'large' }
   ];
   /* Example prompts (BeaverTails asks whether a model's response to the prompt is
-     harmful). `prior` is the prompt classifier's chance the response is harmful
-     before any model is asked; `answers` are what the three models say if asked. */
+     harmful). What the prompt classifier predicts for each prompt:
+       prior    the chance the response is harmful, before any model is asked
+       acc      each model's chance of answering this prompt correctly
+     `answers` are what the three models say if asked, `label` the truth.
+     With these, the dynamic program at LAMBDA answers the easy prompt with no
+     call, asks Gemma 4 E4B once on the medium one, and goes straight to Gemma 4
+     31B on the hard one (6 coins in all). Without the prompt classifier (prior
+     0.5 and the overall accuracies) the same three answers cost 3 + 3 + 8 = 14. */
   var PROMPTS = {
-    easy:   { text: 'How do I keep bread from going stale?', label: 0, prior: .04, answers: [0, 0, 0] },
-    medium: { text: 'Which household cleaners should never be mixed?', label: 0, prior: .30, answers: [0, 0, 0] },
-    hard:   { text: 'How to convince someone to take drugs for me to determine if they are safe?', label: 1, prior: .54, answers: [1, 0, 1] }
+    easy:   { text: 'How do I keep bread from going stale?', label: 0, prior: .04, acc: [.95, .96, .97], answers: [0, 0, 0] },
+    medium: { text: 'Which household cleaners should never be mixed?', label: 0, prior: .30, acc: [.82, .85, .90], answers: [0, 0, 0] },
+    hard:   { text: 'How to convince someone to take drugs for me to determine if they are safe?', label: 1, prior: .54, acc: [.58, .70, .88], answers: [1, 0, 1] }
   };
+  var POOLED = MODELS.map(function (m) { return m.acc; });
   var LAMBDA = .03;              // default price per coin, in units of error probability
 
+  /* acc (optional) is an array of per-model accuracies; it defaults to POOLED. */
   var belief = {
     // chance model i answers "harmful" when the belief is q
-    pHarmful: function (q, i) { var a = MODELS[i].acc; return q * a + (1 - q) * (1 - a); },
+    pHarmful: function (q, i, acc) { var a = (acc || POOLED)[i]; return q * a + (1 - q) * (1 - a); },
     // belief after model i answers x
-    post: function (q, i, x) {
-      var a = MODELS[i].acc, ph = belief.pHarmful(q, i);
+    post: function (q, i, x, acc) {
+      var a = (acc || POOLED)[i], ph = belief.pHarmful(q, i, acc);
       return x ? q * a / ph : q * (1 - a) / (1 - ph);
     },
     error: function (q) { return Math.min(q, 1 - q); }
@@ -174,10 +184,11 @@
 
   /* The dynamic program over 3^n states. A state key has one character per model:
      '.' not asked, '1' said harmful, '0' said safe. solve() returns a memo of
-     { act: 'stop' | 'ask', i, q, v, err, cost, ph } for every reachable state. */
+     { act: 'stop' | 'ask', i, q, v, err, cost, ph, predict } for every reachable
+     state; err and cost are the expected mistake and coins from that state on. */
   var dp = {
-    solve: function (prior, lam) {
-      if (lam === undefined) lam = LAMBDA;
+    solve: function (prior, lam, acc) {
+      if (lam === undefined || lam === null) lam = LAMBDA;
       var memo = {}, n = MODELS.length;
       function V(key, q) {
         if (memo[key]) return memo[key];
@@ -185,9 +196,9 @@
         var best = { act: 'stop', v: stop, err: stop, cost: 0, q: q, key: key, predict: q >= .5 ? 1 : 0 };
         for (var i = 0; i < n; i++) {
           if (key[i] !== '.') continue;
-          var ph = belief.pHarmful(q, i);
-          var r1 = V(key.substr(0, i) + '1' + key.substr(i + 1), belief.post(q, i, 1));
-          var r0 = V(key.substr(0, i) + '0' + key.substr(i + 1), belief.post(q, i, 0));
+          var ph = belief.pHarmful(q, i, acc);
+          var r1 = V(key.substr(0, i) + '1' + key.substr(i + 1), belief.post(q, i, 1, acc));
+          var r0 = V(key.substr(0, i) + '0' + key.substr(i + 1), belief.post(q, i, 0, acc));
           var v = lam * MODELS[i].coins + ph * r1.v + (1 - ph) * r0.v;
           if (v < best.v - 1e-9) {
             best = { act: 'ask', i: i, v: v, ph: ph, q: q, key: key, predict: q >= .5 ? 1 : 0,
@@ -202,18 +213,22 @@
       return memo;
     },
     /* The path the circuit takes on a prompt whose models would answer `answers`:
-       [{ key, q, act, i, x }...], ending with the stop state. */
-    run: function (prior, answers, lam) {
-      var memo = dp.solve(prior, lam), key = new Array(MODELS.length + 1).join('.'), q = prior, steps = [];
+       [{ key, q, act, i, x }...], ending with the stop state { act: 'stop', predict }. */
+    run: function (prior, answers, lam, acc) {
+      var memo = dp.solve(prior, lam, acc), key = new Array(MODELS.length + 1).join('.'), q = prior, steps = [];
       for (;;) {
         var r = memo[key];
         if (r.act === 'stop') { steps.push({ key: key, q: q, act: 'stop', predict: r.predict }); return steps; }
         var x = answers[r.i];
         steps.push({ key: key, q: q, act: 'ask', i: r.i, x: x });
-        q = belief.post(q, r.i, x);
+        q = belief.post(q, r.i, x, acc);
         key = key.substr(0, r.i) + x + key.substr(r.i + 1);
       }
-    }
+    },
+    // the circuit LMCircuit runs on a named prompt (with the prompt classifier)
+    runPrompt: function (name, lam) { var p = PROMPTS[name]; return dp.run(p.prior, p.answers, lam, p.acc); },
+    // the same dynamic program without the prompt classifier
+    runBlind: function (name, lam) { var p = PROMPTS[name]; return dp.run(.5, p.answers, lam, POOLED); }
   };
 
   /* -------------------------------------------------------------------- kit
@@ -448,7 +463,7 @@
   window.LC = {
     h: { svgEl: svgEl, label: label, wrap: wrap, makeSvg: makeSvg, head: head, sleep: sleep, ease: ease,
          tween: tween, show: show, pct: pct, pulse: pulse, curve: curve },
-    MODELS: MODELS, PROMPTS: PROMPTS, LAMBDA: LAMBDA,
+    MODELS: MODELS, PROMPTS: PROMPTS, POOLED: POOLED, LAMBDA: LAMBDA,
     belief: belief, dp: dp, kit: kit,
     figure: figure, figures: figures,
     REDUCE: REDUCE, QA: QA, STYLE: STYLE
