@@ -386,7 +386,7 @@
         });
         label(gN, 180, ZY + 16, 'unsure →', 't-xs t-muted', { 'text-anchor': 'middle' });
         label(gN, 280, ZY + 16, 'unsure →', 't-xs t-muted', { 'text-anchor': 'middle' });
-        label(gN, 262, 232, 'fixed order, cheapest first, stop when confident', 't-xs t-muted', { 'text-anchor': 'middle' });
+        label(gN, 462, 236, 'fixed order, cheapest first, stop when confident', 't-xs t-muted', { 'text-anchor': 'end' });
         return async function (alive) {
           await sleep(300); if (!alive()) return;
           await pulse(gP, fwd[0]); if (!alive()) return;
@@ -416,10 +416,10 @@
       var n1 = instNode(312, 70, 1), n2 = instNode(312, 180, 2);
       var wo1 = wire(curve(328, 70, PX, PY), true), wo2 = wire(curve(328, 180, PX, PY));
       var wStop = wire(curve(228, ZY, PX, PY), true);
-      label(gN, 262, 86, 'says safe → ask LLM2', 't-xs t-muted', { 'text-anchor': 'middle' });
-      label(gN, 262, 176, 'says harmful → ask LLM3', 't-xs t-muted', { 'text-anchor': 'middle' });
+      label(gN, 290, 58, 'says safe → ask LLM2', 't-xs t-muted', { 'text-anchor': 'end' });
+      label(gN, 290, 204, 'says harmful → ask LLM3', 't-xs t-muted', { 'text-anchor': 'end' });
       label(gN, 300, 118, 'sure → stop', 't-xs t-muted', { 'text-anchor': 'middle' });
-      label(gN, 262, 236, 'next query and stopping depend on the prompt and the answers so far', 't-xs t-muted', { 'text-anchor': 'middle' });
+      label(gN, 462, 236, 'next query and stop depend on the answers so far', 't-xs t-muted', { 'text-anchor': 'end' });
       return async function (alive) {
         await sleep(300); if (!alive()) return;
         await pulse(gP, wz); if (!alive()) return;
@@ -718,8 +718,8 @@
     L.forEach(function (col) { col[1].forEach(function (y) { neurons.push(svgEl('circle', { 'class': 'neuron', cx: col[0], cy: y, r: 4 }, s)); }); });
 
     svgEl('rect', { 'class': 'card', x: 20, y: 96, width: 140, height: 88, rx: 10 }, s);
-    label(s, 30, 112, 'history', 't-mono t-ink t-b');
-    label(s, 150, 112, 'answers so far', 't-xs t-muted', { 'text-anchor': 'end' });
+    label(s, 30, 112, 'history', 't-mono t-ink t-b', { style: 'font-size:10.5px' });
+    label(s, 150, 112, 'answers so far', 't-xs t-muted', { 'text-anchor': 'end', style: 'font-size:9px' });
     var hist = INST.map(function (I, j) {
       var g = svgEl('g', { style: 'opacity:0' }, s);
       svgEl('rect', { 'class': 'chip s', x: 30, y: 120 + j * 20, width: 120, height: 16, rx: 5 }, g);
