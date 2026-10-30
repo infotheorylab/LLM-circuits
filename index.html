@@ -415,8 +415,8 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     <p class="hook-sub">How to combine LLM classifiers into adaptive query policies that trade classification accuracy against inference cost</p>
 
     <div class="cover-authors">
-      <span class="ca"><a href="#authors">Sajani Vithana</a><sup>1*</sup></span>
       <span class="ca"><a href="#authors">Hadi Khalaf</a><sup>1,2*</sup></span>
+      <span class="ca"><a href="#authors">Sajani Vithana</a><sup>1*</sup></span>
       <span class="ca"><a href="#authors">Kunal Talreja</a><sup>3</sup></span>
       <span class="ca"><a href="#authors">Haewon Jeong</a><sup>4,5</sup></span>
       <span class="ca"><a href="#authors">Viveck R. Cadambe</a><sup>3</sup></span>
@@ -426,7 +426,8 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 
     <div class="btn-row cover-cta">
       <button class="btn primary" data-open="sheet-paper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>Paper</button>
-      <a class="btn" href="https://anonymous.4open.science/r/LMCircuits-ED8D"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>Code</a>
+      <a class="btn" href="https://arxiv.org/abs/2610.30076" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M8 12h8M12 8v8"/></svg>arXiv</a>
+      <a class="btn" href="https://github.com/hskhalaf/lmcircuit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>Code</a>
     </div>
 
     <div class="cover-circuit" aria-hidden="true">
@@ -561,7 +562,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     <div class="copy">
       <h2>One probabilistic model <span class="hl">glues</span> the instruments together</h2>
       <p class="lede">The dynamic program needs two things for every prompt: the belief <span class="m">P(Y | z, history)</span> at every state, and the chance that each instrument answers 1. Neither is known. We learn both from one labeled training set.</p>
-      <p>A text embedding <span class="m">&#966;(z)</span> enters a small network <span class="m">f<sub>&#952;</sub></span> with two heads. The <span class="term">label head</span> <span class="m">&#951;</span> reads the embedding together with the answers collected so far and returns the belief. The <span class="term">instrument heads</span> <span class="m">&#957;<sub>i</sub></span> predict what each instrument will say. Both are trained with cross-entropy against recorded labels and recorded calls.</p>
+      <p>A text embedding <span class="m">&#966;(z)</span> enters a small network <span class="m">f<sub>&#952;</sub></span>. The <span class="term">label head</span> <span class="m">&#951;</span> reads the embedding together with the answers collected so far and returns the belief. The <span class="term">instrument heads</span> <span class="m">&#957;<sub>i</sub></span> predict what each instrument will say. Inside, the network sorts prompts into a few latent types and updates the type by Bayes' rule as answers arrive. Everything is trained with cross-entropy against recorded labels and recorded calls.</p>
       <p>The heads feed the dynamic program: <span class="m">&#951;</span> sets the stopping error at each state, <span class="m">&#957;</span> sets the transition probabilities. The network runs on a CPU, and at the empty state it already gives a zero-cost prediction.</p>
     </div>
     <figure class="fig" data-fig="glue" aria-label="Two panels. Panel 1, fit once: a prompt is embedded and enters a two-headed network; the label head outputs the belief that the response is safe, the instrument heads output each instrument's chance of saying safe, both trained with cross-entropy. Panel 2, generate: the fitted model feeds a dynamic program for a chosen weight lambda, which emits the circuit for the prompt.">
@@ -606,20 +607,20 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 <section class="screen" id="results" data-title="Results">
   <div class="wrap">
     <div class="single">
-      <h2>A better cost&#8211;accuracy <span class="hl">frontier</span> on four tasks</h2>
-      <p class="lede">Safety (BeaverTails), political science (PolitiCAUSE), human preference (LMArena) and health (HealthBench), with pools of seven or eight open models. Across all four, LMCircuit Pareto-dominates routing and cascading baselines: RouteLLM, HybridLLM, CARROT, Cascade Routing, Consistency Cascades, Cascaded Selective, FrugalGPT and Adaptive-Consistency.</p>
+      <h2>A better cost&#8211;accuracy <span class="hl">frontier</span> on seven tasks</h2>
+      <p class="lede">Safety (BeaverTails), health (HealthBench), political science (PolitiCAUSE), human preference (LMArena), agent evaluation (AgentJudgeBench), decision-making (Decision Index) and reasoning (BIG-Bench Hard), with seven or eight instruments per task, from sub-billion-parameter open models to frontier APIs. Across all seven, the learned circuits attain higher accuracy than every individual instrument and than the routing and cascading baselines at nearly all budgets: RouteLLM, HybridLLM, CARROT, Cascade Routing, Consistency Cascade, Cascaded Selective, FrugalGPT and Adaptive-Consistency.</p>
     </div>
     <!-- Export Figure 4 of the paper to ./img/frontier.png to fill this slot. -->
     <figure class="figure" id="frontier-fig">
-      <img src="./img/frontier.png" alt="Accuracy against expected cost per item on the four tasks. The LMCircuit frontier lies above the individual judges and the routing and cascading baselines. Lower panels show how many calls go to each instrument as the price falls." onerror="this.closest('.figure').classList.add('no-img')"/>
+      <img src="./img/frontier.png?v=2" alt="Accuracy against expected cost per item on the seven tasks. The LMCircuit frontier lies above the individual judges and the routing and cascading baselines. Side panels show how many calls go to each instrument as the price falls." onerror="this.closest('.figure').classList.add('no-img')"/>
       <div class="missing">Figure 4 of the paper goes here. Save it as <code>img/frontier.png</code>.</div>
       <figcaption class="figcap"><b>LMCircuit improves the cost&#8211;accuracy frontier over routing and cascading baselines.</b> As &#955; falls, the circuits make more calls and change which instruments they use. The allocation differs by task: the value of an instrument depends on the problem and on the other measurements available.</figcaption>
     </figure>
     <!-- Export Figure 5 of the paper to ./img/runtime.png to fill this slot. -->
     <figure class="figure" id="runtime-fig">
-      <img src="./img/runtime.png" alt="Time to construct each method on the four tasks. LMCircuit fits in 6 to 18 seconds; several routing and cascading baselines take minutes to hours." onerror="this.closest('.figure').classList.add('no-img')"/>
+      <img src="./img/runtime.png?v=2" alt="Time to construct each method on the seven tasks. LMCircuit fits in one to three minutes; several routing and cascading baselines take hours." onerror="this.closest('.figure').classList.add('no-img')"/>
       <div class="missing">Figure 5 of the paper goes here. Save it as <code>img/runtime.png</code>.</div>
-      <figcaption class="figcap"><b>LMCircuit is substantially faster to construct than most routing and cascading baselines.</b> Across all four tasks, LMCircuit is trained in 6&#8211;18 seconds, while some baselines require minutes to hours.</figcaption>
+      <figcaption class="figcap"><b>LMCircuit is substantially faster to construct than most routing and cascading baselines.</b> Across all seven tasks, LMCircuit is trained in 1&#8211;3 minutes, while some baselines require minutes to hours.</figcaption>
     </figure>
   </div>
 </section>
@@ -629,7 +630,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   <div class="wrap">
     <div class="statement">
       <h2>Ask the instrument with the most <span class="hl">information per dollar</span>, and stop when the belief is certain.</h2>
-      <p class="lede">A query is valuable for its label and for what it reveals about how hard the prompt is. The optimal circuit spends more on prompts where instruments disagree and resolves easy ones at once.</p>
+      <p class="lede">A query is valuable for its label and for what it reveals about how hard the prompt is. The optimal circuit spends more on prompts where instruments disagree and resolves easy ones at once. For a fixed prompt its error falls exponentially with cost, at a rate set by the most informative instrument per unit cost; across a population, the spread of prompt difficulty decides whether the decay stays exponential or slows to stretched-exponential or polynomial.</p>
     </div>
   </div>
 </section>
@@ -640,17 +641,17 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     <h2>Who made this</h2>
     <div class="author-grid">
       <div class="author">
-        <div class="avatar">SV</div>
-        <h3>Sajani Vithana<sup class="eq">*</sup></h3>
-        <div class="role">Harvard SEAS</div>
-        <img class="college-logo" src="./img/seaslogo.png" alt="Harvard SEAS" onerror="this.style.display='none'"/>
-        <p></p>
-      </div>
-      <div class="author">
         <div class="avatar">HK</div>
         <h3>Hadi Khalaf<sup class="eq">*</sup></h3>
         <div class="role">Harvard SEAS &middot; Kempner Institute</div>
         <div class="logos"><img class="college-logo" src="./img/seaslogo.png" alt="Harvard SEAS" onerror="this.style.display='none'"/><img class="college-logo" src="./img/kempner.png" alt="Kempner Institute" onerror="this.style.display='none'"/></div>
+        <p></p>
+      </div>
+      <div class="author">
+        <div class="avatar">SV</div>
+        <h3>Sajani Vithana<sup class="eq">*</sup></h3>
+        <div class="role">Harvard SEAS</div>
+        <img class="college-logo" src="./img/seaslogo.png" alt="Harvard SEAS" onerror="this.style.display='none'"/>
         <p></p>
       </div>
       <div class="author">
@@ -692,7 +693,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     <div class="contact-grid">
       <a class="contact-card" href="mailto:sajani@seas.harvard.edu"><div class="t">Research inquiries</div><div class="d">Questions about the method or the results</div></a>
       <a class="contact-card" href="mailto:sajani@seas.harvard.edu"><div class="t">Collaboration</div><div class="d">Interested in working together</div></a>
-      <a class="contact-card" href="https://anonymous.4open.science/r/LMCircuits-ED8D"><div class="t">Code and data</div><div class="d">Measurements, training and every baseline</div></a>
+      <a class="contact-card" href="https://github.com/hskhalaf/lmcircuit"><div class="t">Code and data</div><div class="d">Measurements, training and every baseline</div></a>
       <a class="contact-card" href="mailto:sajani@seas.harvard.edu"><div class="t">Something broken?</div><div class="d">Let us know about the site</div></a>
     </div>
   </div>
@@ -703,7 +704,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 <footer>
   <div class="wrap">
     <span>&copy; <span id="yr"></span> Information Theory Lab &mdash; Harvard</span>
-    <span>preprint, 2026 &middot; <a href="https://anonymous.4open.science/r/LMCircuits-ED8D">code</a></span>
+    <span><a href="https://arxiv.org/abs/2610.30076">arXiv:2610.30076</a> &middot; 2026 &middot; <a href="https://github.com/hskhalaf/lmcircuit">code</a></span>
   </div>
 </footer>
 
@@ -718,19 +719,19 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 <dialog class="sheet" id="sheet-paper" aria-labelledby="sheet-paper-h">
   <div class="sheet-head"><h3 id="sheet-paper-h">Circuits of LLM Classifiers</h3><button class="mini-btn" data-close>Close</button></div>
   <div class="sheet-body">
-    <p><strong>Abstract.</strong> Language models make it easy to build classifiers by simply prompting a model with the sample to classify. However, their predictions are neither deterministic nor uniformly reliable across samples. How can we combine predictions from different models to improve reliability? We view LLM classifiers as noisy measurement instruments of an underlying target label. Our goal is to maximize average classification accuracy at a given average query cost. To this end, we introduce circuits that organize LLM classifiers into an adaptive sequence of queries and decisions. We then characterize the optimal circuit, obtain the fundamental limits of achievable accuracy, and provide practical insights on realizing the optimal circuit. Across safety, healthcare, political science and preference benchmarks, our method improves the cost&#8211;accuracy frontier over routing and cascading baselines.</p>
-    <p class="aside">Sajani Vithana*, Hadi Khalaf*, Kunal Talreja, Haewon Jeong, Viveck R. Cadambe, Flavio Calmon. *Equal contribution.</p>
-    <!-- TODO: replace with the arXiv link when public. -->
+    <p><strong>Abstract.</strong> Language models make it easy to build classifiers by simply prompting a model with the sample to classify. However, their predictions are neither deterministic nor uniformly reliable across samples. How can we combine predictions from different models to improve reliability? We view LLM classifiers as noisy measurement instruments of an underlying target label. Our goal is to maximize average classification accuracy at a given average query cost. To this end, we introduce circuits that organize LLM classifiers into an adaptive sequence of queries and decisions. We then characterize the optimal circuit, obtain the fundamental limits of achievable accuracy, and provide practical insights on realizing the optimal circuit. Across seven classification tasks spanning safety, health, political science, human preference, agent evaluation, decision-making and reasoning, our method improves the cost&#8211;accuracy frontier over routing and cascading baselines.</p>
+    <p class="aside">Hadi Khalaf*, Sajani Vithana*, Kunal Talreja, Haewon Jeong, Viveck R. Cadambe, Flavio Calmon. *Equal contribution. arXiv:2610.30076, October 2026.</p>
     <div class="btn-row" style="margin-top:14px">
-      <a class="btn primary" href="#" aria-disabled="true">PDF (link coming soon)</a>
-      <a class="btn" href="https://anonymous.4open.science/r/LMCircuits-ED8D">Code</a>
+      <a class="btn primary" href="https://arxiv.org/pdf/2610.30076" target="_blank" rel="noopener noreferrer">PDF</a>
+      <a class="btn" href="https://arxiv.org/abs/2610.30076" target="_blank" rel="noopener noreferrer">arXiv</a>
+      <a class="btn" href="https://github.com/hskhalaf/lmcircuit">Code</a>
     </div>
     <h3 style="margin:26px 0 10px">Cite</h3>
-<pre class="bib">@article{vithana2026circuits,
-  title  = {Circuits of {LLM} Classifiers},
-  author = {Vithana, Sajani and Khalaf, Hadi and Talreja, Kunal and Jeong, Haewon and Cadambe, Viveck R. and Calmon, Flavio},
-  year   = {2026},
-  note   = {Preprint}
+<pre class="bib">@article{khalaf2026circuits,
+  title   = {Circuits of {LLM} Classifiers},
+  author  = {Khalaf, Hadi and Vithana, Sajani and Talreja, Kunal and Jeong, Haewon and Cadambe, Viveck R. and Calmon, Flavio},
+  journal = {arXiv preprint arXiv:2610.30076},
+  year    = {2026}
 }</pre>
   </div>
 </dialog>
@@ -742,12 +743,13 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     <div class="eqbox">V<sub>&#955;,z</sub>(s) = min { e<sub>z</sub>(s) ,&nbsp; min<sub>i &#8713; M(s)</sub> [ &#955;c<sub>i</sub>(z) + &#931;<sub>x &#8712; {0,1}</sub> Q<sup>[i]</sup>(x | z) &#183; V<sub>&#955;,z</sub>(s &#8746; {(i, x)}) ] }<br/><span class="c">stop and predict &nbsp;&nbsp;vs.&nbsp;&nbsp; pay for instrument i, then continue from the answer</span></div>
     <div class="points">
       <div class="point"><div class="n">01</div><p><strong>Sequential without loss.</strong> Any circuit that queries a batch of instruments at once has a sequential counterpart with the same error and cost, so the search can be restricted to one query at a time.</p></div>
-      <div class="point"><div class="n">02</div><p><strong>Conditional independence.</strong> Each call uses fresh randomness, so measurements are modeled as independent given the prompt. Error correlation across prompts is a separate matter, and the embedding carries it: the fitted model recovers 54&#8211;69% of the measured dependence between instruments without labels.</p></div>
-      <div class="point"><div class="n">03</div><p><strong>Belief model.</strong> <span class="m">f<sub>&#952;</sub>(&#966;(z), s) = (&#951;<sub>&#952;</sub>(&#966;(z), s), &#957;<sub>&#952;</sub><sup>(1)</sup>(&#966;(z)), &#8230;, &#957;<sub>&#952;</sub><sup>(n)</sup>(&#966;(z)))</span>. A shared linear projection of a 1024-dimensional Qwen3-Embedding vector feeds a two-layer instrument head and a label head that sums learned embeddings of the observed (instrument, answer) pairs, so it is invariant to the order of answers.</p></div>
-      <div class="point"><div class="n">04</div><p><strong>Loss.</strong> For each training prompt we sample a random state (a random subset of instruments and one recorded answer each) and minimize binary cross-entropy of <span class="m">&#951;</span> against the label plus cross-entropy of each <span class="m">&#957;<sub>i</sub></span> against every recorded call of instrument <span class="m">i</span>. One temperature per head is fit on validation data.</p></div>
-      <div class="point"><div class="n">05</div><p><strong>Costs.</strong> <span class="m">c<sub>i</sub>(z)</span> is known before the query: input tokens of <span class="m">z</span> times the input price, plus the 95th percentile of the instrument's output length on training prompts times the output price, normalized by the most expensive instrument.</p></div>
-      <div class="point"><div class="n">06</div><p><strong>Frontier.</strong> The dynamic program is solved for 401 prices spaced geometrically from 10<sup>&#8722;6</sup> to 10<sup>2</sup>, plus <span class="m">&#955; = 0</span> and <span class="m">&#955; = &#8734;</span>. For each budget the price with the best validation accuracy within budget is selected and its test accuracy reported.</p></div>
-      <div class="point"><div class="n">07</div><p><strong>Pool selection.</strong> The gain from adding an instrument is at most <span class="m">&#8730;(I(Y; X<sub>new</sub> | X<sub>pool</sub>, Z)/2)</span>. Starting from a cheap instrument and greedily adding the one with the largest conditional information builds a compact pool whose frontier matches the full pool's.</p></div>
+      <div class="point"><div class="n">02</div><p><strong>Conditional independence.</strong> Each call uses fresh randomness, so measurements are modeled as independent given the prompt. Error correlation across prompts is a separate matter, and the embedding carries it: without test labels, the correlations between instruments' answers, and between their errors, implied by the fitted model are within 4&#8211;17% of the measured values, and its implied accuracy of each instrument is within 1.2&#8211;3.6%.</p></div>
+      <div class="point"><div class="n">03</div><p><strong>Belief model.</strong> <span class="m">f<sub>&#952;</sub>(&#966;(z), s) = (&#951;<sub>&#952;</sub>(&#966;(z), s), &#957;<sub>&#952;</sub><sup>(1)</sup>(&#966;(z), s), &#8230;, &#957;<sub>&#952;</sub><sup>(n)</sup>(&#966;(z), s))</span>. A learned projection of a 1024-dimensional Qwen3-Embedding-0.6B vector to 64 dimensions feeds three small heads. The model assumes each prompt belongs to one of <span class="m">T</span> latent types: a type head gives the prior over types, a measurement head gives each instrument's chance of answering 1 under each type, and a label head gives the label probability under each type at state <span class="m">s</span>, summing learned embeddings of the observed (instrument, answer) pairs so it is invariant to their order. The observed answers update the type by Bayes' rule and the outputs average over types. <span class="m">T &#8712; {1, 2, 4, 8}</span> is chosen on validation.</p></div>
+      <div class="point"><div class="n">04</div><p><strong>Loss.</strong> For each training prompt we draw a random state (a random subset of instruments and one recorded answer each) and minimize binary cross-entropy of <span class="m">&#951;</span> against the recorded labels, weighted by annotator counts where several annotators labeled a prompt (as on HealthBench), plus cross-entropy of each unqueried <span class="m">&#957;<sub>i</sub></span> against every recorded call of instrument <span class="m">i</span>. AdamW with early stopping on validation; one temperature per head is then fit on validation states; five seeds per fold.</p></div>
+      <div class="point"><div class="n">05</div><p><strong>Costs.</strong> <span class="m">c<sub>i</sub>(z)</span> is known before the query. On the four tasks we query ourselves it is the input tokens of <span class="m">z</span> times the input price, plus the 95th percentile of the instrument's output length on training prompts times the output price. On AgentJudgeBench, BIG-Bench Hard and Decision Index it is the instrument's mean recorded cost on training prompts. Costs are divided by the mean cost of the most expensive instrument.</p></div>
+      <div class="point"><div class="n">06</div><p><strong>Frontier.</strong> The dynamic program is solved for 201 prices spaced geometrically from 10<sup>&#8722;8</sup> to 10<sup>2</sup>, plus <span class="m">&#955; = 0</span> and <span class="m">&#955; = &#8734;</span>. Each dataset is split into five folds, keeping prompts that share a source together. For each budget the price with the best validation balanced accuracy within budget is selected and its test balanced accuracy reported.</p></div>
+      <div class="point"><div class="n">07</div><p><strong>Pool selection.</strong> The gain from adding an instrument is at most <span class="m">&#8730;(I(Y; X<sub>new</sub> | X<sub>pool</sub>, Z)/2)</span>. Starting from a cheap instrument and greedily adding the one with the largest conditional information reaches the full-pool frontier with 2&#8211;3 instruments on the four tasks shown in the paper, and dominates accuracy-first, cheapest-first and random orderings.</p></div>
+      <div class="point"><div class="n">08</div><p><strong>Scaling laws.</strong> For a fixed prompt, the optimal error decays exponentially with expected cost: <span class="m">&#8722;log E<sub>&#955;</sub>(z) / C<sub>&#955;</sub>(z) &#8594; I(z)</span>, where <span class="m">I(z)</span> is the largest information rate in the pool (KL divergence between an instrument's answer distributions under the two labels, per unit cost), and the circuit spends almost all of its cost on the instruments that attain it. Across a population of prompts the rate becomes <span class="m">1 / E[1/I(Z)]</span>; if too many prompts have rates near zero, the decay slows to stretched-exponential or polynomial.</p></div>
     </div>
   </div>
 </dialog>
@@ -757,16 +759,19 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   <div class="sheet-body">
     <div class="table-scroll">
       <table class="res-table">
-        <thead><tr><th scope="col">Dataset</th><th scope="col">Train</th><th scope="col">Val.</th><th scope="col">Test</th><th scope="col" style="text-align:left">Instruments</th></tr></thead>
+        <thead><tr><th scope="col">Dataset</th><th scope="col" style="text-align:left">Question an instrument answers</th><th scope="col">Prompts</th><th scope="col" style="text-align:left">Instruments</th></tr></thead>
         <tbody>
-          <tr><td>BeaverTails</td><td>24,461</td><td>2,719</td><td>3,020</td><td style="text-align:left">Gemma 4, Qwen3 (7 models)</td></tr>
-          <tr><td>PolitiCAUSE</td><td>12,438</td><td>2,664</td><td>2,665</td><td style="text-align:left">Gemma 4, Qwen3 (7 models)</td></tr>
-          <tr><td>LMArena</td><td>25,162</td><td>2,797</td><td>6,993</td><td style="text-align:left">Gemma 4, Qwen3 (7 models)</td></tr>
-          <tr><td>HealthBench</td><td>21,015</td><td>2,331</td><td>5,785</td><td style="text-align:left">Granite 4.2, gpt-oss (8 models)</td></tr>
+          <tr><td>AgentJudgeBench</td><td style="text-align:left">Does an agent's planned tool calls meet a criterion (right tools; full coverage of the request)?</td><td>20,850</td><td style="text-align:left">Prometheus-2-7B, gpt-oss-20b, gpt-oss-120b, QwQ-32B, Gemini-2.5-Pro, GPT-5.4, Claude Sonnet 4.5 (7, recorded)</td></tr>
+          <tr><td>BeaverTails</td><td style="text-align:left">Is a model response unsafe?</td><td>30,200</td><td style="text-align:left">Gemma 4 E2B, E4B, 26B-A4B, 31B; Qwen3 4B, 8B, 32B (7)</td></tr>
+          <tr><td>BIG-Bench Hard</td><td style="text-align:left">Which of two options is correct? (8 reasoning subtasks)</td><td>1,865</td><td style="text-align:left">46 recorded models, 0.36B&#8211;123B; the 8 whose frontier best matches the full set are kept</td></tr>
+          <tr><td>Decision Index</td><td style="text-align:left">Six binary decision tasks (clinical-trial NLI, causal QA, sarcasm, multi-hop claims, humour, limericks)</td><td>24,928</td><td style="text-align:left">18 leaderboard entrants, 0.4B&#8211;36B; 8 kept</td></tr>
+          <tr><td>HealthBench</td><td style="text-align:left">Does the last response meet a physician-written rubric criterion? (target: share of physicians who say yes)</td><td>29,131</td><td style="text-align:left">Granite 4.2 3B (reasoning off, low, default); gpt-oss-20b (low, medium, high); gpt-oss-120b (low, medium) (8)</td></tr>
+          <tr><td>LMArena</td><td style="text-align:left">Which of two responses is preferred?</td><td>34,952</td><td style="text-align:left">Gemma 4, Qwen3 (7)</td></tr>
+          <tr><td>PolitiCAUSE</td><td style="text-align:left">Does a sentence state a causal relation?</td><td>17,767</td><td style="text-align:left">Gemma 4, Qwen3 (7)</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="tabcap"><b>Four binary classification tasks.</b> BeaverTails: is a model response unsafe? PolitiCAUSE: does a sentence state a causal relation? LMArena: which of two responses is preferred? HealthBench: does the last response meet a physician-written rubric criterion? Every model is queried five times per training prompt and eight times per validation and test prompt with vLLM.</p>
+    <p class="tabcap"><b>Seven binary classification tasks.</b> On BeaverTails, HealthBench, LMArena and PolitiCAUSE we query the instruments ourselves with each dataset's official instruction and the model's default decoding; the Gemma models answer directly and the Qwen3 models reason before answering. On AgentJudgeBench, BIG-Bench Hard and Decision Index we use the answers each benchmark recorded, priced at the model's API price (AgentJudgeBench) or at $0.01 per million tokens per billion active parameters (BIG-Bench Hard, Decision Index). Each dataset is split into five folds, keeping prompts that share a source together; each fold serves once as the test set.</p>
     <div class="table-scroll" style="margin-top:22px">
       <table class="res-table">
         <thead><tr><th scope="col">$ / M tokens</th><th>Gemma 2B</th><th>Gemma 4B</th><th>Gemma 26B</th><th>Gemma 31B</th><th>Qwen 4B</th><th>Qwen 8B</th><th>Qwen 32B</th><th>Granite 3B</th><th>OSS 20B</th><th>OSS 120B</th></tr></thead>
@@ -776,7 +781,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         </tbody>
       </table>
     </div>
-    <p class="tabcap"><b>Price of each instrument</b> in USD per million tokens, from the cheapest listed provider on 2026-09-24 (OpenRouter, AWS Bedrock, Fireworks). Gemma models answer directly; Qwen3 models reason before answering.</p>
+    <p class="tabcap"><b>Price of the instruments we query ourselves</b> in USD per million tokens, from the cheapest listed provider on 2026-09-24 (OpenRouter, AWS Bedrock, Fireworks).</p>
   </div>
 </dialog>
 
