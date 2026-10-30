@@ -644,15 +644,12 @@
       }); });
     }
     panel(16, 300, '1   Fit a probabilistic model');
-    [[100, 'prompt z'], [196, 'history']].forEach(function (item) {
-      svgEl('rect', { 'class': 'glue-equation-bg', x: 44, y: item[0], width: 126, height: 58, rx: 12 }, s);
-      label(s, 107, item[0]+35, item[1], 'glue-label', { 'text-anchor': 'middle' });
-    });
-    network([[240,[144,178,212]],[282,[132,160,188,216]],[324,[140,230]]]);
-    label(s, 282, 104, '$f_θ$', 'glue-label', { 'text-anchor': 'middle' });
-    wire('M170,129 H206 Q218,129 218,141 V144 H235');
-    wire('M170,225 H206 Q218,225 218,213 V212 H235');
-    wire('M330,140 H400'); wire('M330,230 H400');
+    label(s, 107, 140, 'prompt z', 'glue-label', { 'text-anchor': 'middle' });
+    label(s, 107, 236, 'history', 'glue-label', { 'text-anchor': 'middle' });
+    label(s, 282, 188, '$f_θ$', 'glue-label', { 'text-anchor': 'middle', style: 'font-size:32px' });
+    wire('M170,135 L248,169 M237,159 L248,169 L233,169');
+    wire('M170,230 L248,195 M233,195 L248,195 L237,205');
+    wire('M312,178 H352 V140 H400'); wire('M352,178 V230 H400');
     var outputs = svgEl('g', { 'class': 'glue-step' }, s);
     [[110, '$η$ = $P(safe | z, history)$'], [200, '$ν_i$ = $P(i says safe)$']].forEach(function (item) {
       svgEl('rect', { 'class': 'glue-equation-bg', x: 400, y: item[0], width: 284, height: 60, rx: 12 }, outputs);
