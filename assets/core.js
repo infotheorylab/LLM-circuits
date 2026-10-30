@@ -379,14 +379,14 @@
       if (ONLY && ONLY.indexOf(name) < 0) return;
       var build = figures[name];
       if (!build) return;
-      var run = 0, play = null, played = false, narrow = null;
+      var run = 0, play = null, played = false, narrow = null, builtW = 0, settle = null;
       function ctx() {
         var w = fig.clientWidth || 600;
         return { width: w, narrow: w < NARROW_PX, reduce: REDUCE };
       }
       function construct() {
         var c = ctx();
-        narrow = c.narrow;
+        narrow = c.narrow; builtW = fig.clientWidth;
         fig.classList.add('armed');
         try { play = build(fig, c); }
         catch (e) { play = null; console.error('[fig:' + name + '] build failed:', e); }
@@ -409,11 +409,16 @@
       construct();
       // rebuild when the figure crosses the narrow / wide breakpoint
       if ('ResizeObserver' in window) {
+        // figures are drawn one unit per CSS pixel, so a real change of width redraws
+        // them (once the window settles); crossing the narrow breakpoint redraws at once
         new ResizeObserver(function () {
+          var w = fig.clientWidth;
           // a figure is never really this thin; screenshots that render beyond the
           // viewport briefly report such widths, and rebuilding then breaks the run
-          if (fig.clientWidth < 160 || ctx().narrow === narrow) return;
-          run++; construct(); if (played) start();
+          if (w < 160 || Math.abs(w - builtW) < 24) return;
+          clearTimeout(settle);
+          settle = setTimeout(function () { run++; construct(); if (played) start(); },
+            ctx().narrow === narrow ? 250 : 0);
         }).observe(fig);
       }
       if (QA) { pending.push(start()); return; }
@@ -455,7 +460,7 @@
       var last = i >= screens.length - 1;
       nextPre.textContent = last || i === 0 ? '' : 'Next: ';
       nextLabel.textContent = last ? 'Back to top' : i === 0 ? 'Scroll to begin' : screens[i + 1].dataset.title;
-      next.setAttribute('aria-label', last ? 'Back to top' : 'Next: ' + screens[i + 1].dataset.title);
+      next.setAttribute('aria-label', last ? 'Back to top' : i === 0 ? 'Scroll to begin' : 'Next: ' + screens[i + 1].dataset.title);
       next.classList.toggle('up', last);
       next.classList.toggle('at-start', i === 0);
     }
@@ -464,9 +469,17 @@
       target.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'start' });
     });
     setCurrent(0);
+    // the button steps aside while the current screen still runs below the window,
+    // so it never sits on a figure; on the cover it waits in the corner
+    function dock() {
+      var r = screens[current].getBoundingClientRect();
+      next.classList.toggle('away', current > 0 && r.bottom > innerHeight + 8);
+    }
+    addEventListener('scroll', dock, { passive: true });
+    addEventListener('resize', dock);
     if ('IntersectionObserver' in window) {
       var middle = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) { if (e.isIntersecting) setCurrent(screens.indexOf(e.target)); });
+        entries.forEach(function (e) { if (e.isIntersecting) { setCurrent(screens.indexOf(e.target)); dock(); } });
       }, { rootMargin: '-50% 0px -50% 0px' });
       var arrive = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('in'); });
@@ -485,7 +498,10 @@
       });
     });
     document.querySelectorAll('dialog.sheet').forEach(function (d) {
-      d.addEventListener('click', function (e) { if (e.target === d) d.close(); });
+      // close on a click on the backdrop, not when a text selection ends there
+      var downOut = false;
+      d.addEventListener('pointerdown', function (e) { downOut = e.target === d; });
+      d.addEventListener('click', function (e) { if (e.target === d && downOut) d.close(); });
       d.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', function () { d.close(); }); });
     });
   }

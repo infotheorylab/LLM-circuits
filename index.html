@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
 <meta charset="UTF-8" />
+<script>document.documentElement.classList.remove('no-js');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Circuits of LLM Classifiers</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%2317284D%27/%3E%3Ccircle cx=%279%27 cy=%2716%27 r=%274%27 fill=%27%232E7D57%27/%3E%3Ccircle cx=%2723%27 cy=%279%27 r=%274%27 fill=%27%232A4BD0%27/%3E%3Ccircle cx=%2723%27 cy=%2723%27 r=%274%27 fill=%27%23B4472F%27/%3E%3Cpath d=%27M12 14l8-4M12 18l8 4%27 stroke=%27%23fff%27 stroke-width=%271.6%27/%3E%3C/svg%3E" />
@@ -14,7 +15,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.js" integrity="sha384-a1WQdjRj162i159OYq041X6I4K8NenkrI09LlPmiHg0YOb7CR+wJOraXwK9abpnE" crossorigin="anonymous"></script>
 
 <link rel="stylesheet" href="./assets/site.css?v=7" />
-<link rel="stylesheet" href="./assets/fig-hero.css?v=7" />
+<link rel="stylesheet" href="./assets/fig-cover.css?v=7" />
 <link rel="stylesheet" href="./assets/fig-uses.css?v=7" />
 <link rel="stylesheet" href="./assets/fig-noisy.css?v=7" />
 <link rel="stylesheet" href="./assets/fig-question.css?v=7" />
@@ -31,8 +32,8 @@
 <!-- ============ OPENING SCREEN ============ -->
 <header class="cover" id="top" data-title="Start">
   <div class="cover-inner wrap">
-    <h1 class="hook"><span class="hl">Circuits</span> of LLM Classifiers</h1>
-    <p class="hook-sub">Adaptively combining LLM classifiers to reduce cost and improve accuracy</p>
+    <h1 class="hook">Circuits of LLM <span class="hl">Classifiers</span></h1>
+    <p class="hook-sub"><span>We combine LLM classifiers and decision models into adaptive query policies</span> <span>that best trade off classification accuracy against inference cost</span></p>
 
     <div class="cover-authors">
       <span class="ca"><a href="#authors">Hadi Khalaf</a><sup>1,2*</sup></span>
@@ -50,25 +51,68 @@
       <a class="btn" href="https://github.com/hskhalaf/lmcircuit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>Code</a>
     </div>
 
-    <!-- The cover animation: LMCircuit on three prompts, each answered by the circuit it needs. -->
-    <figure class="fig cover-fig" data-fig="hero" aria-label="LMCircuit on three prompts. A prompt classifier reads each prompt and gives a first guess; the circuit then asks the models it needs. The easy prompt is answered with no model call, the medium one after one call to Gemma 4 E4B, and the hard one after one call to Gemma 4 31B. Readouts show the chance the prompt is harmful, the number of calls and the cost for one million prompts.">
-      <figcaption class="fig-cap">Illustrative accuracies. Costs are list prices for classifying one million prompts.</figcaption>
-    </figure>
-
-    <div class="cover-colleges">
-      <img src="./img/seaslogo.png" alt="Harvard SEAS" onerror="this.style.display='none'"/>
-      <img src="./img/kempner.png" alt="Kempner Institute" onerror="this.style.display='none'"/>
-      <img src="./img/gtlogo.png" alt="Georgia Institute of Technology" onerror="this.style.display='none'"/>
-      <img src="./img/uc-santa-barbara.jpg" alt="UC Santa Barbara" onerror="this.style.display='none'"/>
-      <img src="./img/flatiron.png" alt="Flatiron Institute" onerror="this.style.display='none'"/>
-    </div>
-
-    <a class="lab-link" href="https://infotheorylab.github.io/" target="_blank" rel="noopener noreferrer">
-      <div class="it-logo full" data-it-logo>
-        <span class="line"><span class="label">The </span><span class="lit anim">Information Theory</span></span>
-        <span class="line"><span class="label">Laboratory </span><span class="lit">@ Harvard</span></span>
+    <!-- The cover: one prompt, three circuit settings (from the upstream cover by Hadi Khalaf). -->
+    <div class="cover-circuit" data-fig="cover" aria-label="One prompt goes through the prompt classifier, which says it is 54% likely to be harmful, into a circuit of three models. The circuit depends on the setting. Prioritize accuracy: it asks Gemma 4 E4B, Gemma 4 26B and Gemma 4 31B and ends 84% sure the prompt is harmful, for $152 per million prompts. Balance cost and accuracy: it asks only Gemma 4 26B. Prioritize cost: it asks no model.">
+      <div class="circuit-viewport" tabindex="0" aria-label="The circuit; scroll sideways on small screens">
+        <div class="cover-flow">
+          <div class="cover-source">
+            <svg viewBox="0 0 260 320" aria-hidden="true">
+              <defs><marker id="source-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path class="cw-head" d="M0,0 L10,5 L0,10 Z"/></marker></defs>
+              <rect class="cbox" x="30" y="20" width="140" height="54" rx="12"/><text x="100" y="52" text-anchor="middle">Prompt</text>
+              <path class="cw" d="M100,74 V106" marker-end="url(#source-arrow)"/>
+              <g class="lc-net" transform="translate(66.4 112) scale(1.2)"><line x1="6" y1="12" x2="28" y2="5"/><line x1="6" y1="12" x2="28" y2="21"/><line x1="6" y1="12" x2="28" y2="37"/><line x1="6" y1="12" x2="28" y2="53"/><line x1="6" y1="29" x2="28" y2="5"/><line x1="6" y1="29" x2="28" y2="21"/><line x1="6" y1="29" x2="28" y2="37"/><line x1="6" y1="29" x2="28" y2="53"/><line x1="6" y1="46" x2="28" y2="5"/><line x1="6" y1="46" x2="28" y2="21"/><line x1="6" y1="46" x2="28" y2="37"/><line x1="6" y1="46" x2="28" y2="53"/><line x1="28" y1="5" x2="50" y2="18"/><line x1="28" y1="5" x2="50" y2="40"/><line x1="28" y1="21" x2="50" y2="18"/><line x1="28" y1="21" x2="50" y2="40"/><line x1="28" y1="37" x2="50" y2="18"/><line x1="28" y1="37" x2="50" y2="40"/><line x1="28" y1="53" x2="50" y2="18"/><line x1="28" y1="53" x2="50" y2="40"/><circle cx="6" cy="12" r="3.5"/><circle cx="6" cy="29" r="3.5"/><circle cx="6" cy="46" r="3.5"/><circle cx="28" cy="5" r="3.5"/><circle cx="28" cy="21" r="3.5"/><circle cx="28" cy="37" r="3.5"/><circle cx="28" cy="53" r="3.5"/><circle cx="50" cy="18" r="3.5"/><circle cx="50" cy="40" r="3.5"/></g>
+              <text x="100" y="210" text-anchor="middle">Prompt classifier</text>
+              <text id="cover-prior" x="195" y="128" text-anchor="middle">P(harmful)=54%</text>
+              <path class="cw" id="cover-source-output" d="M134,147 H260"/>
+            </svg>
+          </div>
+          <div class="hero-board" id="cover-board">
+            <div class="circuit-heading" id="cover-setting">Circuit setting: <b>Prioritize accuracy</b></div>
+            <div class="cover-src-row" aria-hidden="true"><span class="pill">Prompt</span><span class="arr">&#8594;</span><svg viewBox="0 0 56 58"><g class="lc-net"><line x1="6" y1="12" x2="28" y2="5"/><line x1="6" y1="12" x2="28" y2="21"/><line x1="6" y1="12" x2="28" y2="37"/><line x1="6" y1="12" x2="28" y2="53"/><line x1="6" y1="29" x2="28" y2="5"/><line x1="6" y1="29" x2="28" y2="21"/><line x1="6" y1="29" x2="28" y2="37"/><line x1="6" y1="29" x2="28" y2="53"/><line x1="6" y1="46" x2="28" y2="5"/><line x1="6" y1="46" x2="28" y2="21"/><line x1="6" y1="46" x2="28" y2="37"/><line x1="6" y1="46" x2="28" y2="53"/><line x1="28" y1="5" x2="50" y2="18"/><line x1="28" y1="5" x2="50" y2="40"/><line x1="28" y1="21" x2="50" y2="18"/><line x1="28" y1="21" x2="50" y2="40"/><line x1="28" y1="37" x2="50" y2="18"/><line x1="28" y1="37" x2="50" y2="40"/><line x1="28" y1="53" x2="50" y2="18"/><line x1="28" y1="53" x2="50" y2="40"/><circle cx="6" cy="12" r="3.5"/><circle cx="6" cy="29" r="3.5"/><circle cx="6" cy="46" r="3.5"/><circle cx="28" cy="5" r="3.5"/><circle cx="28" cy="21" r="3.5"/><circle cx="28" cy="37" r="3.5"/><circle cx="28" cy="53" r="3.5"/><circle cx="50" cy="18" r="3.5"/><circle cx="50" cy="40" r="3.5"/></g></svg><span>Prompt classifier</span></div>
+            <div class="circuit-readouts">
+              <div><span class="readout-label">P(harmful)=</span><strong id="cover-belief">54%</strong></div>
+              <div><span class="readout-label">Queries=</span><strong id="cover-calls">0</strong></div>
+              <div><span class="readout-label">Cost per 1M prompts=</span><strong id="cover-cost">$0</strong></div>
+            </div>
+            <svg id="cover-diagram" viewBox="0 0 800 360" aria-hidden="true">
+              <defs><marker id="circuit-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path class="cw-head" d="M0,0 L10,5 L0,10 Z"/></marker></defs>
+              <path class="cw" id="cover-prompt-wire" d="M0,172 H48"/>
+              <path class="cw" id="cw0" d="M48,172 H84" marker-end="url(#circuit-arrow)"/>
+              <path class="cw" id="cw1" d="M230,172 H262 Q278,172 278,156 V86 Q278,70 294,70 H334" marker-end="url(#circuit-arrow)"/>
+              <path class="cw" id="cw2" d="M410,116 V222" marker-end="url(#circuit-arrow)"/>
+              <path class="cw" id="cw3" d="M48,172 H606" marker-end="url(#circuit-arrow)"/>
+              <path class="cw" id="cover-balanced-wire" d="M48,172 H64 Q80,172 80,156 V86 Q80,70 96,70 H334" marker-end="url(#circuit-arrow)"/>
+              <path class="cw" id="cw4" d="M480,70 H528 Q544,70 544,86 V156 Q544,172 560,172 H584"/>
+              <path class="cw" id="cw5" d="M480,274 H528 Q544,274 544,258 V188 Q544,172 560,172 H584"/>
+              <path class="cw" id="cw6" d="M584,172 H606" marker-end="url(#circuit-arrow)"/>
+                <g id="cover-model-0" transform="translate(90 126)">
+                  <rect class="cn c0" id="cn0" width="140" height="92" rx="14"/>
+                  <text class="model-name" x="70" y="28" text-anchor="middle">Gemma 4 E4B</text>
+                  <text class="model-cost" x="70" y="50" text-anchor="middle">$20 / 1M prompts</text>
+                  <text class="model-output" id="cover-answer-0" x="70" y="76" text-anchor="middle"></text>
+                </g>
+                <g id="cover-model-1" transform="translate(340 24)">
+                  <rect class="cn c1" id="cn1" width="140" height="92" rx="14"/>
+                  <text class="model-name" x="70" y="28" text-anchor="middle">Gemma 4 26B</text>
+                  <text class="model-cost" x="70" y="50" text-anchor="middle">$42 / 1M prompts</text>
+                  <text class="model-output" id="cover-answer-1" x="70" y="76" text-anchor="middle"></text>
+                </g>
+                <g id="cover-model-2" transform="translate(340 228)">
+                  <rect class="cn c2" id="cn2" width="140" height="92" rx="14"/>
+                  <text class="model-name" x="70" y="28" text-anchor="middle">Gemma 4 31B</text>
+                  <text class="model-cost" x="70" y="50" text-anchor="middle">$90 / 1M prompts</text>
+                  <text class="model-output" id="cover-answer-2" x="70" y="76" text-anchor="middle"></text>
+                </g>
+                <g id="cover-predict" transform="translate(612 126)">
+                  <rect class="prediction" width="170" height="92" rx="14"/>
+                  <text class="prediction-output" x="85" y="53" text-anchor="middle" id="cover-out"></text>
+                </g>
+            </svg>
+          </div>
+        </div>
       </div>
-    </a>
+    </div>
+    <p class="fig-cap cover-cap">Illustrative accuracies. Costs are list prices for classifying one million prompts.</p>
     <p class="view-note">Best viewed on a desktop browser.</p>
   </div>
 </header>
@@ -80,7 +124,7 @@
   <div class="wrap">
     <div class="single">
       <h2>LLMs are used for <span class="hl">classification</span></h2>
-      <p class="lede">Describe a task in a prompt, give the model an item, and it returns a label. Researchers and companies now label data this way at scale.</p>
+      <p class="lede">Describe the task in a few sentences, add the text to classify, and the model returns a label. Researchers and companies now label data this way at scale.</p>
     </div>
     <!-- four use cases, each with a small looping animation drawn by fig-uses.js into .uc-anim -->
     <div class="uc-grid" data-fig="uses">
@@ -250,7 +294,7 @@
   <div class="wrap">
     <div class="statement">
       <h2>We are going through a <span class="hl">revolution</span> in classification.</h2>
-      <p class="lede">Hundreds of models can now label text on demand, at prices that differ more than a thousandfold. The best prediction comes from combining them well.</p>
+      <p class="lede">Hundreds of models can now label text on demand, at prices that differ more than a thousandfold. Used together, a few of them are more accurate than any one of them at the same cost.</p>
       <p class="rule">We show that the best circuit leans on the model that gives the most information per dollar.</p>
     </div>
   </div>
@@ -307,12 +351,20 @@
 <!-- ============ CONTACT ============ -->
 <section class="screen tight" id="contact" data-title="Contact">
   <div class="wrap">
-    <h2>We'd love to hear from you</h2>
+    <h2>Contact</h2>
     <div class="contact-grid">
       <a class="contact-card" href="mailto:sajani@seas.harvard.edu"><div class="t">Research inquiries</div><div class="d">Questions about the method or the results</div></a>
       <a class="contact-card" href="mailto:sajani@seas.harvard.edu"><div class="t">Collaboration</div><div class="d">Interested in working together</div></a>
       <a class="contact-card" href="https://github.com/hskhalaf/lmcircuit"><div class="t">Code and data</div><div class="d">Measurements, training and every baseline</div></a>
-      <a class="contact-card" href="mailto:sajani@seas.harvard.edu"><div class="t">Something broken?</div><div class="d">Let us know about the site</div></a>
+      <a class="contact-card" href="mailto:sajani@seas.harvard.edu"><div class="t">Problems with this site</div><div class="d">sajani@seas.harvard.edu</div></a>
+    </div>
+    <div class="contact-lab">
+      <a class="lab-link" href="https://infotheorylab.github.io/" target="_blank" rel="noopener noreferrer">
+      <div class="it-logo full" data-it-logo>
+        <span class="line"><span class="label">The </span><span class="lit anim">Information Theory</span></span>
+        <span class="line"><span class="label">Laboratory </span><span class="lit">@ Harvard</span></span>
+      </div>
+    </a>
     </div>
   </div>
 </section>
@@ -321,7 +373,7 @@
 
 <footer>
   <div class="wrap">
-    <span>&copy; <span id="yr"></span> Information Theory Lab &mdash; Harvard</span>
+    <span>&copy; <span id="yr">2026</span> Information Theory Lab, Harvard</span>
     <span><a href="https://arxiv.org/abs/2610.30076">arXiv:2610.30076</a> &middot; 2026 &middot; <a href="https://github.com/hskhalaf/lmcircuit">code</a></span>
   </div>
 </footer>
@@ -355,34 +407,34 @@
 </dialog>
 
 <dialog class="sheet" id="sheet-method" aria-labelledby="sheet-method-h">
-  <div class="sheet-head"><h3 id="sheet-method-h">LMCircuit, technically</h3><button class="mini-btn" data-close>Close</button></div>
+  <div class="sheet-head"><h3 id="sheet-method-h">Technical details</h3><button class="mini-btn" data-close>Close</button></div>
   <div class="sheet-body">
     <p>For a prompt <span class="m" data-tex="z">z</span>, a state <span class="m" data-tex="s">s</span> is the set of (instrument, answer) pairs observed so far. The belief is <span class="m" data-tex="q_z(s) = P(Y = 1 \mid z, s)">q<sub>z</sub>(s) = P(Y = 1 | z, s)</span> and the stopping error is <span class="m" data-tex="e_z(s) = \min\{q_z(s),\, 1 - q_z(s)\}">e<sub>z</sub>(s) = min{q<sub>z</sub>(s), 1 &#8722; q<sub>z</sub>(s)}</span>. With a price <span class="m" data-tex="\lambda">&#955;</span> on cost, the value of a state satisfies</p>
     <div class="eqbox"><div class="eq" data-tex="V_{\lambda,z}(s) = \min\Big\{\, e_z(s),\;\; \min_{i \notin M(s)} \Big[\, \lambda c_i(z) + \sum_{x \in \{0,1\}} Q^{[i]}(x \mid z)\; V_{\lambda,z}\big(s \cup \{(i, x)\}\big) \Big] \Big\}" data-display>V<sub>&#955;,z</sub>(s) = min { e<sub>z</sub>(s) ,&nbsp; min<sub>i &#8713; M(s)</sub> [ &#955;c<sub>i</sub>(z) + &#931;<sub>x &#8712; {0,1}</sub> Q<sup>[i]</sup>(x | z) &#183; V<sub>&#955;,z</sub>(s &#8746; {(i, x)}) ] }</div><span class="c">stop and predict &nbsp;&nbsp;vs.&nbsp;&nbsp; pay for instrument i, then continue from the answer</span></div>
     <div class="points">
       <div class="point"><div class="n">01</div><p><strong>Sequential without loss.</strong> Any circuit that queries a batch of instruments at once has a sequential counterpart with the same error and cost, so the search can be restricted to one query at a time.</p></div>
-      <div class="point"><div class="n">02</div><p><strong>Conditional independence.</strong> Each call uses fresh randomness, so measurements are modeled as independent given the prompt. Error correlation across prompts is a separate matter, and the embedding carries it: without test labels, the correlations between instruments' answers, and between their errors, implied by the fitted model are within 4&#8211;17% of the measured values, and its implied accuracy of each instrument is within 1.2&#8211;3.6%.</p></div>
-      <div class="point"><div class="n">03</div><p><strong>Belief model.</strong> <span class="m" data-tex="f_\theta(\phi(z), s) = \big(\eta_\theta(\phi(z), s),\, \nu^{(1)}_\theta(\phi(z), s),\, \ldots,\, \nu^{(n)}_\theta(\phi(z), s)\big)">f<sub>&#952;</sub>(&#966;(z), s) = (&#951;<sub>&#952;</sub>(&#966;(z), s), &#957;<sub>&#952;</sub><sup>(1)</sup>(&#966;(z), s), &#8230;, &#957;<sub>&#952;</sub><sup>(n)</sup>(&#966;(z), s))</span>. A learned projection of a 1024-dimensional Qwen3-Embedding-0.6B vector to 64 dimensions feeds three small heads. The model assumes each prompt belongs to one of <span class="m" data-tex="T">T</span> latent types: a type head gives the prior over types, a measurement head gives each instrument's chance of answering 1 under each type, and a label head gives the label probability under each type at state <span class="m" data-tex="s">s</span>, summing learned embeddings of the observed (instrument, answer) pairs so it is invariant to their order. The observed answers update the type by Bayes' rule and the outputs average over types. <span class="m" data-tex="T \in \{1, 2, 4, 8\}">T &#8712; {1, 2, 4, 8}</span> is chosen on validation.</p></div>
-      <div class="point"><div class="n">04</div><p><strong>Loss.</strong> For each training prompt we draw a random state (a random subset of instruments and one recorded answer each) and minimize binary cross-entropy of <span class="m" data-tex="\eta">&#951;</span> against the recorded labels, weighted by annotator counts where several annotators labeled a prompt (as on HealthBench), plus cross-entropy of each unqueried <span class="m" data-tex="\nu_i">&#957;<sub>i</sub></span> against every recorded call of instrument <span class="m" data-tex="i">i</span>. AdamW with early stopping on validation; one temperature per head is then fit on validation states; five seeds per fold.</p></div>
-      <div class="point"><div class="n">05</div><p><strong>Costs.</strong> <span class="m" data-tex="c_i(z)">c<sub>i</sub>(z)</span> is known before the query. On the four tasks we query ourselves it is the input tokens of <span class="m" data-tex="z">z</span> times the input price, plus the 95th percentile of the instrument's output length on training prompts times the output price. On AgentJudgeBench, BIG-Bench Hard and Decision Index it is the instrument's mean recorded cost on training prompts. Costs are divided by the mean cost of the most expensive instrument.</p></div>
+      <div class="point"><div class="n">02</div><p><strong>Conditional independence.</strong> Each call uses fresh randomness, so we model answers as independent given the prompt. Errors can still be correlated across prompts, and the embedding captures this. Without seeing test labels, the fitted model predicts the correlations between instruments' answers, and between their errors, to within 4% of the measured values on six tasks (15&#8211;17% low on BIG-Bench Hard, the smallest). It predicts each instrument's accuracy to within 1.2 to 3.6 points.</p></div>
+      <div class="point"><div class="n">03</div><p><strong>Belief model (the prompt classifier).</strong> <span class="m" data-tex="f_\theta(\phi(z), s) = \big(\eta_\theta(\phi(z), s),\, \nu^{(1)}_\theta(\phi(z), s),\, \ldots,\, \nu^{(n)}_\theta(\phi(z), s)\big)">f<sub>&#952;</sub>(&#966;(z), s) = (&#951;<sub>&#952;</sub>(&#966;(z), s), &#957;<sub>&#952;</sub><sup>(1)</sup>(&#966;(z), s), &#8230;, &#957;<sub>&#952;</sub><sup>(n)</sup>(&#966;(z), s))</span>. A learned projection of a 1024-dimensional Qwen3-Embedding-0.6B vector to 64 dimensions feeds three small heads. The model assumes each prompt belongs to one of <span class="m" data-tex="T">T</span> latent types: a type head gives the prior over types, a measurement head gives each instrument's chance of answering 1 under each type, and a label head gives the label probability under each type at state <span class="m" data-tex="s">s</span>, summing learned embeddings of the observed (instrument, answer) pairs so it is invariant to their order. The observed answers update the type by Bayes' rule and the outputs average over types. <span class="m" data-tex="T \in \{1, 2, 4, 8\}">T &#8712; {1, 2, 4, 8}</span> is chosen on validation.</p></div>
+      <div class="point"><div class="n">04</div><p><strong>Loss.</strong> For each training prompt we draw a random state (a random subset of instruments and one recorded answer each) and minimize binary cross-entropy of <span class="m" data-tex="\eta">&#951;</span> against the recorded labels, weighted by annotator counts where several annotators labeled a prompt (as on HealthBench), plus cross-entropy of each unqueried <span class="m" data-tex="\nu_i">&#957;<sub>i</sub></span> against every recorded call of instrument <span class="m" data-tex="i">i</span>. AdamW with early stopping on validation; one temperature for the label and one for the instruments' answers is then fit on validation states; five seeds per fold.</p></div>
+      <div class="point"><div class="n">05</div><p><strong>Costs.</strong> <span class="m" data-tex="c_i(z)">c<sub>i</sub>(z)</span> is known before the query. On the four tasks we query ourselves it is the input tokens of <span class="m" data-tex="z">z</span> times the input price, plus the 95th percentile of the instrument's output length on training prompts times the output price. On AgentJudgeBench, BIG-Bench Hard and Decision Index it is the instrument's mean cost on training prompts, priced as in the data sheet (these benchmarks recorded no call costs). Costs are divided by the mean cost of the most expensive instrument.</p></div>
       <div class="point"><div class="n">06</div><p><strong>Frontier.</strong> The dynamic program is solved for 201 prices spaced geometrically from 10<sup>&#8722;8</sup> to 10<sup>2</sup>, plus <span class="m" data-tex="\lambda = 0">&#955; = 0</span> and <span class="m" data-tex="\lambda = \infty">&#955; = &#8734;</span>. Each dataset is split into five folds, keeping prompts that share a source together. For each budget the price with the best validation balanced accuracy within budget is selected and its test balanced accuracy reported.</p></div>
-      <div class="point"><div class="n">07</div><p><strong>Pool selection.</strong> The gain from adding an instrument is at most <span class="m" data-tex="\sqrt{\tfrac{1}{2}\, I(Y;\, X_{\text{new}} \mid X_{\text{pool}}, Z)}">&#8730;(I(Y; X<sub>new</sub> | X<sub>pool</sub>, Z)/2)</span>. Starting from a cheap instrument and greedily adding the one with the largest conditional information reaches the full-pool frontier with 2&#8211;3 instruments on the four tasks shown in the paper, and dominates accuracy-first, cheapest-first and random orderings.</p></div>
+      <div class="point"><div class="n">07</div><p><strong>Pool selection.</strong> The drop in the lowest achievable error from adding an instrument is at most <span class="m" data-tex="\sqrt{\tfrac{1}{2}\, I(Y;\, X_{\text{new}} \mid X_{\text{pool}}, Z)}">&#8730;(I(Y; X<sub>new</sub> | X<sub>pool</sub>, Z)/2)</span>. Starting from a cheap instrument and greedily adding the one with the largest conditional information reaches the full-pool frontier with 2&#8211;3 instruments on the four tasks where we query the models ourselves, and dominates accuracy-first, cheapest-first and random orderings.</p></div>
       <div class="point"><div class="n">08</div><p><strong>Scaling laws.</strong> For one prompt, the error of the best circuit falls exponentially with the amount spent, <span class="m" data-tex="-\log E_\lambda(z) \,/\, C_\lambda(z) \to I(z)">&#8722;log E<sub>&#955;</sub>(z) / C<sub>&#955;</sub>(z) &#8594; I(z)</span>, where <span class="m" data-tex="I(z)">I(z)</span> is the largest information per unit cost among the models (the KL divergence between a model&#8217;s answers under the two labels, divided by its cost). The circuit then spends almost all of its budget on that model. Averaged over prompts, the error falls more slowly when many prompts are hard for every model.</p></div>
     </div>
   </div>
 </dialog>
 
 <dialog class="sheet" id="sheet-data" aria-labelledby="sheet-data-h">
-  <div class="sheet-head"><h3 id="sheet-data-h">Datasets and instruments</h3><button class="mini-btn" data-close>Close</button></div>
+  <div class="sheet-head"><h3 id="sheet-data-h">Datasets and models</h3><button class="mini-btn" data-close>Close</button></div>
   <div class="sheet-body">
     <div class="table-scroll">
       <table class="res-table">
         <thead><tr><th scope="col">Dataset</th><th scope="col" style="text-align:left">Question an instrument answers</th><th scope="col">Prompts</th><th scope="col" style="text-align:left">Instruments</th></tr></thead>
         <tbody>
-          <tr><td>AgentJudgeBench</td><td style="text-align:left">Does an agent's planned tool calls meet a criterion (right tools; full coverage of the request)?</td><td>20,850</td><td style="text-align:left">Prometheus-2-7B, gpt-oss-20b, gpt-oss-120b, QwQ-32B, Gemini-2.5-Pro, GPT-5.4, Claude Sonnet 4.5 (7, recorded)</td></tr>
+          <tr><td>AgentJudgeBench</td><td style="text-align:left">Do an agent's planned tool calls meet a criterion (for example, the right tools or full coverage of the request)?</td><td>20,850</td><td style="text-align:left">Prometheus-2-7B, gpt-oss-20b, gpt-oss-120b, QwQ-32B, Gemini-2.5-Pro, GPT-5.4, Claude Sonnet 4.5 (7, recorded)</td></tr>
           <tr><td>BeaverTails</td><td style="text-align:left">Is a model response unsafe?</td><td>30,200</td><td style="text-align:left">Gemma 4 E2B, E4B, 26B-A4B, 31B; Qwen3 4B, 8B, 32B (7)</td></tr>
-          <tr><td>BIG-Bench Hard</td><td style="text-align:left">Which of two options is correct? (8 reasoning subtasks)</td><td>1,865</td><td style="text-align:left">46 recorded models, 0.36B&#8211;123B; the 8 whose frontier best matches the full set are kept</td></tr>
-          <tr><td>Decision Index</td><td style="text-align:left">Six binary decision tasks (clinical-trial NLI, causal QA, sarcasm, multi-hop claims, humour, limericks)</td><td>24,928</td><td style="text-align:left">18 leaderboard entrants, 0.4B&#8211;36B; 8 kept</td></tr>
+          <tr><td>BIG-Bench Hard</td><td style="text-align:left">Which of two options is correct? (8 reasoning subtasks)</td><td>1,865</td><td style="text-align:left">46 recorded models, 0.36B&#8211;123B; in each fold, the 8 whose cost&#8211;accuracy frontier on the training prompts comes closest to that of all 46 (9 different models across the five folds)</td></tr>
+          <tr><td>Decision Index</td><td style="text-align:left">Six binary decision tasks (clinical-trial NLI, causal QA, sarcasm, multi-hop claims, humour, limericks)</td><td>24,928</td><td style="text-align:left">18 leaderboard entrants, 0.4B&#8211;36B; 8 per fold, chosen the same way (10 different models across the five folds)</td></tr>
           <tr><td>HealthBench</td><td style="text-align:left">Does the last response meet a physician-written rubric criterion? (target: share of physicians who say yes)</td><td>29,131</td><td style="text-align:left">Granite 4.2 3B (reasoning off, low, default); gpt-oss-20b (low, medium, high); gpt-oss-120b (low, medium) (8)</td></tr>
           <tr><td>LMArena</td><td style="text-align:left">Which of two responses is preferred?</td><td>34,952</td><td style="text-align:left">Gemma 4, Qwen3 (7)</td></tr>
           <tr><td>PolitiCAUSE</td><td style="text-align:left">Does a sentence state a causal relation?</td><td>17,767</td><td style="text-align:left">Gemma 4, Qwen3 (7)</td></tr>
@@ -399,21 +451,21 @@
         </tbody>
       </table>
     </div>
-    <p class="tabcap"><b>Price of the instruments we query ourselves</b> in USD per million tokens, from the cheapest listed provider on 2026-09-24 (OpenRouter, AWS Bedrock, Fireworks).</p>
+    <p class="tabcap"><b>Price of the instruments we query ourselves</b> in USD per million tokens, from the cheapest listed provider on 24 September 2026 (OpenRouter, AWS Bedrock or Fireworks). The examples on this page use the Gemma 4 prices.</p>
   </div>
 </dialog>
 
 <dialog class="sheet" id="sheet-refs" aria-labelledby="sheet-refs-h">
   <div class="sheet-head"><h3 id="sheet-refs-h">Baselines</h3><button class="mini-btn" data-close>Close</button></div>
   <div class="sheet-body refs">
-    <p><strong>Predictive routers</strong> pick one model per prompt. <strong>Cascades</strong> query models in a fixed order until a confidence rule fires. <strong>Sampling</strong> repeats one model until its answers agree. All are circuits, so the dynamic program searches over them.</p>
+    <p><strong>Predictive routers</strong> pick one model per prompt. <strong>Cascades</strong> ask models one after another until a confidence rule fires. <strong>Sampling</strong> asks one model again and again until its answers agree. All are circuits. Routers and cascades over the same models are among the circuits the dynamic program compares.</p>
     <ol>
       <li><b>RouteLLM.</b> Ong et al. Learning to route LLMs from preference data. <span class="venue">ICLR 2025 (router)</span></li>
       <li><b>HybridLLM.</b> Ding et al. Cost-efficient and quality-aware query routing. <span class="venue">ICLR 2024 (router)</span></li>
       <li><b>CARROT.</b> Somerstep et al. A cost aware rate optimal router. <span class="venue">arXiv:2502.03261, 2025 (router)</span></li>
       <li><b>Cascade Routing.</b> Dekoninck, Baader and Vechev. A unified approach to routing and cascading for LLMs. <span class="venue">ICML 2025 (cascade)</span></li>
       <li><b>Consistency Cascades.</b> Yue et al. LLM cascades with mixture of thought representations. <span class="venue">ICLR 2024 (cascade)</span></li>
-      <li><b>Cascaded Selective.</b> Jung, Brahman and Choi. Trust or escalate: LLM judges with provable guarantees. <span class="venue">ICLR 2025 (cascade)</span></li>
+      <li><b>Cascaded Selective.</b> Jung, Brahman and Choi. Trust or escalate: LLM judges with provable guarantees for human agreement. <span class="venue">ICLR 2025 (cascade)</span></li>
       <li><b>FrugalGPT.</b> Chen, Zaharia and Zou. How to use LLMs while reducing cost and improving performance. <span class="venue">TMLR 2024 (cascade)</span></li>
       <li><b>Adaptive-Consistency.</b> Aggarwal et al. Let's sample step by step. <span class="venue">EMNLP 2023 (sampling)</span></li>
     </ol>
@@ -432,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 <script src="./assets/core.js?v=7" defer></script>
-<script src="./assets/fig-hero.js?v=7" defer></script>
+<script src="./assets/fig-cover.js?v=7" defer></script>
 <script src="./assets/fig-uses.js?v=7" defer></script>
 <script src="./assets/fig-noisy.js?v=7" defer></script>
 <script src="./assets/fig-question.js?v=7" defer></script>
@@ -492,6 +544,7 @@ document.addEventListener('input', function (e) {
     }, frame);
   }
   window.addEventListener('DOMContentLoaded', function () {
+    if (window.LC && LC.REDUCE) return;   // reduced motion, ?still, ?qa: the words stay put
     setTimeout(function () {
       document.querySelectorAll('[data-it-logo] .anim').forEach(animate);
     }, 700);

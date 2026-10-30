@@ -1,1 +1,47 @@
-/* fig-question */
+/* fig-question: the three questions, asked by a small circuit (assets/fig-question.js).
+   The kit pieces (model blocks, wires, chips, prompt card) are styled in site.css. */
+
+/* the questions above the figure: while it plays, the one being asked is in full ink.
+   Without script, or with reduced motion, all three stay in full ink. */
+#question .ask span { transition: color .45s ease; }
+#question .ask.q-live span { color: #8E97AB; }
+#question .ask.q-live span.on { color: var(--ink); }
+
+/* a clean white board under the questions, on the screen's grey */
+.q-fig { margin-top: clamp(20px, 3.2vh, 32px); }
+.q-fig.fig { background: var(--paper-hi); border-color: var(--line-2); }
+.q-fig .fig-head { min-height: 28px; margin-bottom: 4px; }
+/* drawn at one unit per pixel, so no height cap; a narrow drawing in a wider figure sits centred */
+[data-fig="question"] .fig-svg svg { max-height: none; margin: 0 auto; }
+
+/* wires: a solid line once a model has been asked, dashes while the signal runs */
+[data-fig="question"] .cw.on { stroke: var(--wire-live); stroke-width: 3; }
+[data-fig="question"] .q-j { fill: var(--wire); }
+[data-fig="question"] .pulse { fill: var(--wire-live); }
+
+/* the order in which the models are asked */
+[data-fig="question"] .q-badge circle { fill: #FFFFFF; }
+[data-fig="question"] .q-num { font-family: var(--font-display); font-size: 14px; font-weight: 800; fill: var(--navy); }
+
+/* the confidence bar */
+[data-fig="question"] .q-k { font-size: 14px; font-weight: 600; fill: var(--ink-2); }
+[data-fig="question"] .q-track { fill: var(--line); }
+[data-fig="question"] .q-fill { fill: var(--belief); opacity: .55; }
+[data-fig="question"] .q-mid { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 3 3; }
+[data-fig="question"] .q-mk { fill: var(--belief); stroke: #FFFFFF; stroke-width: 2.5; }
+[data-fig="question"] .q-end { font-size: 14px; fill: var(--muted); }
+
+/* the prediction: an empty slot until the circuit stops, then the navy block */
+[data-fig="question"] .q-slot { fill: none; stroke: var(--line-2); stroke-width: 1.5; stroke-dasharray: 5 5; }
+[data-fig="question"] .q-pred-b { fill: var(--navy); opacity: 0; transition: opacity .35s ease; }
+[data-fig="question"] .q-pred-k { font-size: 14px; fill: var(--muted); transition: fill .35s ease; }
+[data-fig="question"] .q-pred-v { font-family: var(--font-display); font-size: 17px; font-weight: 800; fill: #FFFFFF; opacity: 0; transition: opacity .35s ease; }
+[data-fig="question"] .q-pred.on .q-pred-b, [data-fig="question"] .q-pred.on .q-pred-v { opacity: 1; }
+[data-fig="question"] .q-pred.on .q-pred-k { fill: #C7D5FF; }
+
+/* between loops, what the last pass added fades out (over the inline opacities of the pops) */
+[data-fig="question"] .q-x { transition: opacity .3s ease; }
+[data-fig="question"] svg.q-swap .q-x { opacity: 0 !important; }
+
+/* reduced motion and ?qa: the last frame at once */
+[data-fig="question"].q-still * { transition: none !important; }

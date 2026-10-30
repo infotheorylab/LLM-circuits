@@ -1,0 +1,68 @@
+/* The opening screen and its circuit board, from the upstream cover (Hadi Khalaf):
+   a prompt goes through the prompt classifier into a board where the circuit for the
+   chosen setting lights up, with its readouts above. Wide windows show the prompt and
+   classifier to the left of the board; narrower ones put them in a row inside the board,
+   and phones scroll the board sideways. */
+.cover .cover-inner.wrap { max-width: 1240px; padding: 48px 20px 72px; }
+.cover .hook { font-weight: 700; font-size: clamp(38px, 6vw, 76px); line-height: 1.04; letter-spacing: -0.035em; max-width: 18ch; margin: 0 auto; }
+.cover .hook-sub { font-weight: 400; font-size: clamp(17px, 1.9vw, 22px); color: var(--ink); max-width: 100%; margin: 22px auto 0; line-height: 1.5; letter-spacing: -.02em; }
+.cover .hook-sub span { display: block; }
+@media (min-width: 900px) { .cover .hook-sub span { white-space: nowrap; } }
+@media (max-width: 899px) { .cover .hook-sub { max-width: 54ch; text-wrap: balance; } .cover .hook-sub span { display: inline; } }
+.cover .cover-authors { margin-top: 26px; }
+.cover .cover-cta { margin-top: 24px; }
+
+.cover-circuit { position: relative; width: min(1200px, 100%); margin: 24px auto 0; text-align: left; }
+.cover-circuit .circuit-viewport { overflow-x: auto; }
+.cover-flow { --entry-y: 266.6px; display: grid; grid-template-columns: 260px 924px; width: 1184px; margin: 0 auto; align-items: start; }
+.cover-source { padding-top: calc(var(--entry-y) - 147px); }
+.cover-source svg { display: block; width: 260px; height: 320px; }
+.hero-board { position: relative; border: 2px solid var(--wire); border-radius: 6px; padding: 58px 24px 24px; background: #FFFFFF; }
+.hero-board .circuit-heading { position: absolute; top: 14px; left: 24px; margin: 0; font: 400 20px/1.4 var(--font-display); color: #000000; }
+.hero-board .circuit-heading b { font-weight: 800; }
+.circuit-readouts { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 8px 36px; margin-bottom: 16px; }
+.circuit-readouts > div { display: flex; align-items: baseline; white-space: nowrap; }
+.circuit-readouts .readout-label { font: 600 16px/24px var(--font-display); color: var(--ink-2); }
+.circuit-readouts strong { font: 800 17px/24px var(--font-display); font-variant-numeric: tabular-nums; color: var(--ink); }
+#cover-diagram { display: block; width: 872px; min-width: 872px; height: 392.4px; overflow: visible; }
+
+/* the source row inside the board, used when the prompt and classifier do not fit on the left */
+.cover-src-row { display: none; align-items: center; justify-content: center; gap: 10px; margin: 0 0 14px; font: 700 15px/1.4 var(--font-display); color: var(--ink); }
+.cover-src-row .pill { border: 1.5px solid var(--wire); border-radius: 10px; padding: 4px 14px; background: #FFFFFF; }
+.cover-src-row svg { width: 34px; height: 34px; }
+.cover-src-row .arr { color: var(--wire-live); font-weight: 800; }
+@media (max-width: 1239px) {
+  .cover-flow { grid-template-columns: 924px; width: 924px; }
+  .cover-source { display: none; }
+  .cover-src-row { display: flex; }
+  .hero-board { padding-top: 56px; }
+}
+
+.cover-circuit.is-animating .reveal-step { opacity: 0; transition: opacity .35s ease; }
+.cover-circuit.is-animating .reveal-step.is-visible { opacity: 1; }
+.cover-circuit .cw { fill: none; stroke: var(--wire); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.cover-circuit .cw.live { stroke: var(--wire-live); stroke-width: 4; stroke-dasharray: 8 10; animation: lc-flow 1.2s linear infinite; }
+.cover-circuit .cw-head { fill: var(--wire-live); }
+.cover-circuit .cn { stroke-width: 2; transition: filter .3s ease, stroke .3s ease; }
+.cover-circuit .cn.c0 { fill: var(--cost-0); stroke: var(--cost-0); }
+.cover-circuit .cn.c1 { fill: var(--block-1); stroke: var(--block-1); }
+.cover-circuit .cn.c2 { fill: var(--cost-2); stroke: var(--cost-2); }
+.cover-circuit .cn.lit { stroke: var(--navy); filter: drop-shadow(0 0 6px rgba(49,85,235,.45)); }
+.cover-circuit text { font-family: var(--font-display); font-size: 14px; font-weight: 700; fill: var(--navy); }
+.cover-circuit .model-name { fill: #FFFFFF; font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+.cover-circuit .model-cost { fill: #FFFFFF; font-size: 14px; font-weight: 600; }
+.cover-circuit .model-output { fill: #FFFFFF; font-size: 14px; font-weight: 700; }
+.cover-circuit .cbox { fill: #FFFFFF; stroke: var(--wire); stroke-width: 1.5; }
+.cover-circuit .lc-net line { stroke: var(--wire); stroke-width: 1.2; }
+.cover-circuit .lc-net circle { fill: var(--wire-live); }
+.cover-circuit .prediction { fill: var(--navy); stroke: var(--navy); }
+.cover-circuit .prediction-output { fill: #FFFFFF; font-size: 17px; font-weight: 800; }
+.cover-circuit + .fig-cap { text-align: center; max-width: 60ch; margin: 12px auto 0; }
+/* phones: the board scrolls sideways under a heading and readouts that stay in view */
+@media (max-width: 600px) {
+  .hero-board { padding: 16px; }
+  .hero-board .circuit-heading, .cover-src-row, .circuit-readouts { position: sticky; left: 16px; width: calc(100vw - 72px); }
+  .hero-board .circuit-heading { top: auto; margin-bottom: 10px; font-size: 17px; }
+  .cover-src-row { justify-content: flex-start; }
+  .circuit-readouts { flex-wrap: wrap; justify-content: flex-start; gap: 2px 18px; }
+}

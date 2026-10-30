@@ -139,7 +139,10 @@ code { font-family: var(--font-mono); font-size: .86em; color: var(--ink); backg
 /* ---------- figures ---------- */
 .fig { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px 16px; margin: 0; }
 .fig-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 30px; margin-bottom: 6px; font-size: 14px; color: var(--muted); }
-.fig-svg svg { display: block; width: 100%; height: auto; max-height: 64vh; }
+.fig-svg svg { display: block; width: 100%; height: auto; }
+/* without script: no drawings, so each figure shows what it would have drawn */
+.no-js .next, .no-js [data-open] { display: none; }
+.no-js [data-fig]::before { content: attr(aria-label); display: block; font-size: 15.5px; line-height: 1.55; color: var(--ink); }
 .fig-cap, .fig figcaption { font-size: 14.5px; color: var(--ink-2); margin: 12px 2px 0; line-height: 1.5; }
 .mini-btn { display: inline-flex; align-items: center; gap: 6px; font: 500 13px var(--font-body); color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-brd); border-radius: 8px; padding: 4px 11px; cursor: pointer; transition: background .15s ease, border-color .15s ease; }
 .mini-btn:hover { background: rgba(42,75,208,.17); border-color: var(--accent); }
@@ -208,7 +211,7 @@ code { font-family: var(--font-mono); font-size: .86em; color: var(--ink); backg
 .seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 9px; overflow: hidden; }
 .seg button { font: 600 13px var(--font-body); color: var(--ink-2); background: var(--surface); border: 0; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
 .seg button + button { border-left: 1px solid var(--line-2); }
-.seg button[aria-checked="true"] { background: var(--accent); color: #FFFFFF; }
+.seg button[aria-checked="true"] { background: var(--ink); color: #FFFFFF; }
 .seg-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; }
 .seg-row .lbl { font-size: 13px; color: var(--muted); }
 @media (max-width: 600px) { .seg button { font-size: 13px; padding: 6px 9px; } }
@@ -368,7 +371,10 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 .next:hover { border-color: var(--accent); }
 .next .ic { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #FFFFFF; display: grid; place-items: center; flex: none; transition: transform .3s ease; }
 .next .ic svg { width: 16px; height: 16px; }
-.next.at-start { animation: nudge 2.6s ease-in-out infinite; }
+.next.at-start { animation: nudge 2.6s ease-in-out infinite; left: auto; right: 24px; transform: none; padding: 5px; }
+.next.at-start .next-text { display: none; }
+.next { transition: opacity .2s ease; }
+.next.away { opacity: 0; pointer-events: none; }
 @keyframes nudge { 0%, 58%, 100% { translate: 0 0; } 66% { translate: 0 7px; } 74% { translate: 0 0; } 82% { translate: 0 4px; } 90% { translate: 0 0; } }
 .next.up .ic { transform: rotate(180deg); }
 .next .pre { color: var(--muted); }
@@ -382,7 +388,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 .rail a:hover i { border-color: var(--accent); }
 .rail a span { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); white-space: nowrap; font-size: 12.5px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); padding: 2px 8px; border-radius: 6px; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
 .rail a:hover span, .rail a:focus-visible span { opacity: 1; }
-@media (max-width: 1000px) { .rail { display: none; } }
+@media (max-width: 1199px) { .rail { display: none; } }
 
 @media (max-width: 600px) {
   .wrap { padding: 0 16px; }
@@ -400,7 +406,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 .fig .station .st-name { font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: -.01em; fill: #FFFFFF; }
 .fig .station .st-sub { font-size: 14px; font-weight: 500; fill: #FFFFFF; opacity: .92; }
 .fig .station.active .st-body { stroke: var(--navy); stroke-width: 2.5; filter: drop-shadow(0 0 6px rgba(49,85,235,.45)); }
-.fig .station.dim { opacity: .3; }
+.fig .station.dim { opacity: .45; }
 /* wires: quiet at rest, a moving dashed signal when live */
 .fig .cw { fill: none; stroke: var(--wire); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; transition: stroke .3s ease, opacity .3s ease; }
 .fig .cw.live { stroke: var(--wire-live); stroke-width: 3.5; stroke-dasharray: 8 10; animation: lc-flow 1.2s linear infinite; }
@@ -454,7 +460,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 /* the question */
 #question { background: var(--surface); }
 .ask { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 4.6vw, 58px); line-height: 1.15; letter-spacing: -0.025em; color: var(--ink); margin: 0; max-width: 22ch; }
-.ask span { display: block; }
+.ask span { display: block; text-wrap: balance; }
 .ask span + span { margin-top: .35em; }
 
 /* footnote */
@@ -465,7 +471,7 @@ sup.fnref { font-size: .62em; color: var(--accent); font-weight: 600; }
 .pieces li > a, .pieces-note .linkish { font-size: 14px; }
 
 /* takeaway: two statements */
-.statement .rule { font-family: var(--font-display); font-weight: 600; font-size: clamp(24px, 3vw, 36px); line-height: 1.2; letter-spacing: -0.02em; color: #FFFFFF; margin: 34px 0 0; max-width: 30ch; border-top: 1px solid rgba(255,255,255,.18); padding-top: 26px; }
+.statement .rule { text-wrap: balance; font-family: var(--font-display); font-weight: 600; font-size: clamp(24px, 3vw, 36px); line-height: 1.2; letter-spacing: -0.02em; color: #FFFFFF; margin: 34px 0 0; max-width: 30ch; border-top: 1px solid rgba(255,255,255,.18); padding-top: 26px; }
 #takeaway.reveal .rule { opacity: 0; transition: opacity .8s ease 2.6s; }
 #takeaway.reveal.play .rule { opacity: 1; }
 

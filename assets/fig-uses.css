@@ -1,1 +1,65 @@
-/* fig-uses */
+/* fig-uses: four use cases of LLM classifiers, each card with a small looping scene (assets/fig-uses.js). */
+
+.uc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 30px; }
+.uc { display: flex; flex-direction: column; min-width: 0; background: var(--paper-hi); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.uc-anim { height: 150px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.uc-anim svg { display: block; width: 100%; height: 150px; }
+.uc h3 { font-size: 18px; margin: 16px 18px 6px; }
+.uc p { font-size: 15px; line-height: 1.5; margin: 0 18px; }
+/* the sources line up along the bottom of the row, whatever the length of the text above */
+.uc > a { align-self: flex-start; margin: auto 18px 0; padding: 12px 0 16px; font-size: 14px; }
+@media (max-width: 1000px) { .uc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .uc-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 24px; } }
+
+/* the scenes: the grid is not a .fig, so its svg text gets the figure type here */
+[data-fig="uses"] svg text { font-family: var(--font-body); font-size: 14px; fill: var(--ink-2); }
+
+/* the LLM: a solid block, as the models are in every figure below */
+[data-fig="uses"] .uc-llm rect { fill: var(--block-1); stroke: var(--block-1); stroke-width: 2; transition: stroke .3s ease, filter .3s ease; }
+[data-fig="uses"] .uc-llm text { font-family: var(--font-display); font-size: 15px; font-weight: 800; letter-spacing: .01em; fill: #FFFFFF; }
+[data-fig="uses"] .uc-llm.on rect { stroke: var(--navy); filter: drop-shadow(0 0 6px rgba(49,85,235,.45)); }
+
+/* wires: quiet at rest, a moving dashed signal while the LLM works */
+[data-fig="uses"] .uc-wire { fill: none; stroke: var(--wire); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke .3s ease; }
+[data-fig="uses"] .uc-wire.live { stroke: var(--wire-live); stroke-width: 2.5; stroke-dasharray: 6 7; animation: uc-flow 1s linear infinite; }
+[data-fig="uses"] .uc-wire.off { stroke: var(--line-2); }
+[data-fig="uses"] .uc-paused .uc-wire.live { animation-play-state: paused; }
+@keyframes uc-flow { to { stroke-dashoffset: -26; } }
+
+/* items: white cards and bubbles, their text drawn as grey bars */
+[data-fig="uses"] .uc-card { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1.2; transition: stroke .3s ease, fill .3s ease; }
+[data-fig="uses"] .lit > .uc-card { stroke: var(--accent); stroke-width: 1.6; }
+[data-fig="uses"] .uc-bar { fill: var(--line-2); transition: fill .3s ease; }
+[data-fig="uses"] .uc-thumb { fill: #D3DAEA; }
+[data-fig="uses"] .uc-hl { fill: var(--accent-soft); }
+[data-fig="uses"] .uc-med { fill: var(--alert); opacity: .85; }
+[data-fig="uses"] .uc-ring { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1.5; }
+
+/* the policy page */
+[data-fig="uses"] .uc-page-body { fill: var(--paper-hi); stroke: var(--ink-2); stroke-width: 1.2; stroke-linejoin: round; }
+[data-fig="uses"] .uc-page-fold { fill: none; stroke: var(--ink-2); stroke-width: 1.2; stroke-linejoin: round; }
+[data-fig="uses"] .uc-page-head { fill: var(--ink-2); }
+[data-fig="uses"] .uc-page-line { fill: var(--line-2); }
+
+/* labels and verdicts */
+[data-fig="uses"] .uc-chip rect { stroke-width: 1.2; }
+[data-fig="uses"] .uc-chip-t { font-size: 14px; font-weight: 600; }
+[data-fig="uses"] .uc-chip.tag rect { fill: var(--accent-soft); stroke: var(--accent-brd); }
+[data-fig="uses"] .uc-chip.tag .uc-chip-t { fill: var(--accent); }
+[data-fig="uses"] .uc-chip.ok rect { fill: rgba(8,127,104,.10); stroke: var(--confirm); }
+[data-fig="uses"] .uc-chip.ok .uc-chip-t { fill: var(--confirm); }
+[data-fig="uses"] .uc-chip.no rect { fill: rgba(194,61,89,.10); stroke: var(--alert); }
+[data-fig="uses"] .uc-chip.no .uc-chip-t { fill: var(--alert); }
+[data-fig="uses"] .uc-mark.ok circle { fill: var(--confirm); }
+[data-fig="uses"] .uc-mark.no circle { fill: var(--alert); }
+[data-fig="uses"] .uc-mark path { fill: none; stroke: #FFFFFF; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* a flagged message: tinted, its text greyed out */
+[data-fig="uses"] .flagged > .uc-card { fill: #FBEFF2; stroke: rgba(194,61,89,.55); }
+[data-fig="uses"] .flagged > .uc-bar { fill: rgba(194,61,89,.28); }
+
+/* the two answers a judge compares */
+[data-fig="uses"] .uc-badge { fill: var(--navy); transition: fill .3s ease; }
+[data-fig="uses"] .uc-badge-t { font-family: var(--font-display); font-size: 14px; font-weight: 800; fill: #FFFFFF; }
+[data-fig="uses"] .win > .uc-card { fill: #F0F8F5; stroke: var(--confirm); stroke-width: 2; }
+[data-fig="uses"] .win > .uc-badge { fill: var(--confirm); }
