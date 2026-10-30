@@ -1,1 +1,41 @@
-/* authors: placeholder. */
+/* Authors: one card per author with a photo and its 16-bit version (img/authors, made by
+   scripts/pixel_portraits.py). The toggle switches every card; hover or focus shows the other one.
+   Portraits are 64x64 pixel art, so they are drawn at 128px (2 CSS px per art pixel) to stay crisp;
+   that size also keeps both rows of cards on one laptop screen. */
+#authors .authors-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px 24px; flex-wrap: wrap; }
+#authors .authors-head [data-portrait-switch][hidden] { display: none; }
+#authors .authors-head .seg button { font-size: 14px; padding: 7px 14px; }
+
+#authors .author-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 30px; }
+#authors .author { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 22px 20px; }
+#authors .author h3 { font-size: 18px; margin-top: 16px; }
+#authors .author h3 a { color: var(--ink); }
+#authors .author h3 a:hover { color: var(--accent); }
+#authors .author h3 sup { line-height: 0; }   /* the equal-contribution mark must not push the name down */
+#authors .author .role { margin: 4px 0 0; line-height: 1.45; }
+#authors .author .role span { display: block; }   /* one affiliation per line */
+#authors .author .logos { justify-content: center; gap: 4px 18px; margin-top: auto; padding-top: 10px; }
+#authors .author .college-logo { height: 36px; margin: 0; mix-blend-mode: multiply; }   /* drops the logos' white boxes on the card */
+
+#authors .portrait { position: relative; width: 128px; height: 128px; flex: none; border-radius: 12px; overflow: hidden; background: var(--line); }
+#authors .portrait img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: opacity .35s ease; }
+#authors .portrait .px { image-rendering: pixelated; opacity: 0; }
+#authors [data-view="pixel"] .portrait .px { opacity: 1; }
+/* hover or focus shows the other version */
+#authors [data-view="photo"] .author:hover .px, #authors [data-view="photo"] .author:focus-within .px { opacity: 1; }
+#authors [data-view="pixel"] .author:hover .px, #authors [data-view="pixel"] .author:focus-within .px { opacity: 0; }
+
+#authors .eq-note { margin-top: 18px; }
+
+@media (max-width: 860px) { #authors .author-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* phones: one column, portrait beside the text */
+@media (max-width: 560px) {
+  #authors .author-grid { grid-template-columns: 1fr; gap: 12px; margin-top: 22px; }
+  #authors .author { display: grid; grid-template-columns: 128px minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: 16px; align-items: start; text-align: left; padding: 14px; }
+  #authors .portrait { grid-row: 1 / span 3; }
+  #authors .author h3 { margin-top: 4px; font-size: 17px; }
+  #authors .author .role { font-size: 13px; }
+  #authors .author .logos { justify-content: flex-start; padding-top: 0; }
+  #authors .author .college-logo { height: 28px; max-width: 110px; margin-top: 8px; }
+  #authors .authors-head .seg button { font-size: 13px; padding: 7px 12px; }
+}

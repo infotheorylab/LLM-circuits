@@ -1,1 +1,21 @@
-/* fig-hero-pixel: placeholder. */
+/* fig-hero-pixel: the 16-bit cover (assets/fig-hero-pixel.js), used for
+   data-fig="hero" when the page runs with ?style=pixel. */
+[data-style="pixel"] [data-fig="hero"] .hp-stage { display: flex; justify-content: center; }
+/* the backing store is a whole multiple of the logical size; never smooth it */
+[data-style="pixel"] [data-fig="hero"] .hp-canvas { display: block; image-rendering: crisp-edges; image-rendering: pixelated; }
+
+/* the head sits under the picture, as wide as the canvas: prompt dots left, Replay right */
+[data-style="pixel"] [data-fig="hero"] .hp-head { margin: 10px auto 0; padding: 0 2px; }
+[data-style="pixel"] [data-fig="hero"] .hp-dots { display: flex; gap: 2px; margin-left: -6px; }
+[data-style="pixel"] [data-fig="hero"] .hp-dot {
+  width: 26px; height: 26px; padding: 0; border: 0; background: none; cursor: pointer;
+  display: grid; place-items: center;
+}
+/* square dots, drawn as pixels: an outline when idle, filled for the prompt on screen */
+[data-style="pixel"] [data-fig="hero"] .hp-dot::before {
+  content: ""; width: 8px; height: 8px; box-sizing: border-box;
+  border: 2px solid var(--line-2); background: #FFFFFF;
+}
+[data-style="pixel"] [data-fig="hero"] .hp-dot:hover::before { border-color: var(--ink-2); }
+[data-style="pixel"] [data-fig="hero"] .hp-dot[aria-current]::before { border-color: var(--ink); background: var(--ink); }
+[data-style="pixel"] [data-fig="hero"] .hp-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }

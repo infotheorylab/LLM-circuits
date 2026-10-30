@@ -105,6 +105,7 @@ code { font-family: var(--font-mono); font-size: .86em; color: var(--ink); backg
 .screen { position: relative; min-height: 100vh; min-height: 100svh; display: flex; align-items: center; padding: 56px 0 92px; border-bottom: 1px solid var(--line); scroll-snap-align: start; }
 .screen > .wrap { width: 100%; }
 .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(32px, 5vw, 64px); align-items: center; }
+.split > * { min-width: 0; }
 .copy h2 { margin: 0 0 18px; }
 .copy p { max-width: 50ch; font-size: 16px; line-height: 1.6; margin-bottom: 14px; }
 .copy .lede { font-size: clamp(17.5px, 1.7vw, 19.5px); }
@@ -206,25 +207,9 @@ code { font-family: var(--font-mono); font-size: .86em; color: var(--ink); backg
 .seg button[aria-checked="true"] { background: var(--accent); color: #FFFFFF; }
 .seg-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; }
 .seg-row .lbl { font-size: 13px; color: var(--muted); }
-@media (max-width: 600px) { .seg button { font-size: 12px; padding: 6px 9px; } }
+@media (max-width: 600px) { .seg button { font-size: 13px; padding: 6px 9px; } }
 
 /* dynamic-program figure: price slider, readouts, policy tree */
-.dp-ctl { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; margin: 6px 0 10px; font-size: 13.5px; color: var(--ink-2); }
-.dp-ctl .k { font-family: var(--font-mono); color: var(--ink); white-space: nowrap; }
-.dp-ctl input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
-.dp-ctl .v { font-family: var(--font-mono); font-size: 13px; color: var(--ink); min-width: 9ch; text-align: right; }
-.dp-read { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); margin: 0 0 6px; }
-.dp-read b { font-family: var(--font-mono); color: var(--ink); font-weight: 700; }
-.dp-read .lo { color: var(--muted); }
-.dp-ends { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin: -8px 0 8px; }
-.fig .edge { stroke: var(--line-2); stroke-width: 1.5; fill: none; transition: opacity .35s ease; }
-.fig .edge.on { stroke: var(--belief); stroke-width: 4; stroke-linecap: round; }
-.fig .nd { transition: opacity .35s ease; }
-.fig .nd.off { opacity: .5; }
-.fig .nd.on text { font-weight: 600; }
-.fig .stop-pill { fill: var(--surface-2); stroke: var(--line-2); }
-.fig .stop-pill.on { fill: #FFFFFF; stroke: var(--belief); stroke-width: 1.6; }
-@media (max-width: 600px) { .dp-ctl { grid-template-columns: 1fr auto; } .dp-ctl .k { grid-column: 1 / -1; } }
 
 /* buttons */
 .btn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
@@ -344,7 +329,6 @@ pre.bib { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink); b
 /* authors */
 .author-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 34px; }
 .author { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
-.author .avatar { width: 62px; height: 62px; border-radius: 50%; background: var(--accent-soft); border: 1px solid var(--accent-brd); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 19px; margin-bottom: 14px; }
 .author h3 { font-size: 17px; }
 .author .role { font-size: 13.5px; color: var(--muted); font-family: var(--font-mono); margin: 2px 0 10px; }
 .author .college-logo { height: 40px; width: auto; max-width: 150px; object-fit: contain; display: block; margin: 10px 0 12px; }
@@ -390,7 +374,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 
 @media (max-width: 600px) {
   .wrap { padding: 0 16px; }
-  .fig { padding: 10px 10px 12px; margin-left: -6px; margin-right: -6px; }
+  .fig:not(.figure) { padding: 10px 10px 12px; margin-left: -6px; margin-right: -6px; }
 }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
@@ -426,7 +410,8 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 .hook { max-width: 16ch; }
 .style-switch { display: inline-flex; margin-top: 18px; }
 .style-switch .lbl { font-size: 13px; color: var(--muted); margin-right: 10px; align-self: center; }
-.cover-fig { width: min(760px, 94vw); margin: 34px auto 0; text-align: left; }
+.cover-fig { width: min(760px, 100%); margin: 34px auto 0; text-align: left; }
+.cover-fig .fig-cap { text-align: center; max-width: 60ch; margin: 8px auto 0; }
 .cover-fig.fig { background: transparent; border: 0; padding: 0; }
 
 /* uses: LLMs as classifiers */

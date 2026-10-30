@@ -1,1 +1,43 @@
-/* fig-circuits: placeholder. */
+/* fig-circuits: four circuits over the same three models (assets/fig-circuits.js). */
+
+/* the circuit picker: beside Replay when it fits (cx-stack moves it under, cx-grid makes it 2 x 2) */
+/* min-width 0: the picker's unbroken labels must not widen the page's one-column grid */
+[data-fig="circuits"] { min-width: 0; }
+[data-fig="circuits"] .fig-head { flex-wrap: wrap; row-gap: 10px; margin-bottom: 12px; }
+[data-fig="circuits"] .fig-title:empty { display: none; }
+[data-fig="circuits"] .cx-seg { flex: none; display: inline-grid; grid-auto-flow: column; gap: 1px; background: var(--line-2); border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden; }
+[data-fig="circuits"] .cx-seg button { font: 600 14px/1.2 var(--font-body); color: var(--ink-2); background: var(--paper-hi); border: 0; padding: 8px 13px; cursor: pointer; white-space: nowrap; transition: background .15s ease, color .15s ease; }
+[data-fig="circuits"] .cx-seg button:hover { color: var(--ink); background: var(--surface-2); }
+[data-fig="circuits"] .cx-seg button[aria-checked="true"] { background: var(--ink); color: #FFFFFF; }
+[data-fig="circuits"] .cx-seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; border-radius: 8px; }
+[data-fig="circuits"].cx-stack .mini-btn { margin-left: auto; }
+[data-fig="circuits"].cx-stack .cx-seg { order: 2; flex: 1 1 100%; grid-auto-columns: auto; }
+[data-fig="circuits"].cx-grid .cx-seg { grid-auto-flow: row; grid-template-columns: 1fr 1fr; }
+
+/* the drawing */
+[data-fig="circuits"] .cx-pk { font-size: 14px; fill: var(--muted); }
+[data-fig="circuits"] .cx-pk.on, [data-fig="circuits"] .cx-pkm .cx-pk { fill: var(--ink); font-weight: 600; }
+[data-fig="circuits"] .cx-wire { fill: none; stroke: var(--line-2); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: stroke .25s ease; }
+[data-fig="circuits"] .cx-wire.on { stroke: var(--belief); stroke-width: 2.6; }
+[data-fig="circuits"] .pulse { fill: var(--belief-ink); }
+[data-fig="circuits"] .cx-hub-b { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1.2; transition: stroke .25s ease; }
+[data-fig="circuits"] .cx-hub-b.on { stroke: var(--belief); stroke-width: 2.2; }
+[data-fig="circuits"] .cx-hub-t { font-family: var(--font-display); font-size: 15px; font-weight: 600; fill: var(--ink); }
+[data-fig="circuits"] .station.on .st-body { stroke: var(--belief); stroke-width: 2.2; }
+[data-fig="circuits"] .cx-slot { fill: none; stroke: var(--line-2); stroke-width: 1; stroke-dasharray: 3 3; }
+[data-fig="circuits"] .cx-out { font-size: 14px; fill: var(--muted); }
+[data-fig="circuits"] .cx-badge circle { stroke: var(--surface); stroke-width: 2; }
+[data-fig="circuits"] .cx-badge.ok circle { fill: var(--confirm); }
+[data-fig="circuits"] .cx-badge.bad circle { fill: var(--alert); }
+[data-fig="circuits"] .cx-badge path { fill: none; stroke: #FFFFFF; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* the sentence and the scoreboard */
+[data-fig="circuits"] .cx-say { font-size: 15.5px; line-height: 1.5; color: var(--ink); margin: 14px 2px 0; text-wrap: pretty; }
+[data-fig="circuits"] .cx-board { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+[data-fig="circuits"] .cx-board svg { display: block; width: 100%; height: auto; }
+[data-fig="circuits"] .cx-bhead { font-size: 14px; fill: var(--muted); }
+[data-fig="circuits"] .cx-bname { font-size: 15px; fill: var(--ink-2); }
+[data-fig="circuits"] .cx-bnum { font-family: var(--font-mono); font-size: 14px; font-weight: 700; fill: var(--ink); }
+[data-fig="circuits"] .cx-band { fill: transparent; stroke: none; }
+[data-fig="circuits"] .cx-row.cur .cx-band { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1; }
+[data-fig="circuits"] .cx-row.cur .cx-bname { fill: var(--ink); font-weight: 600; }

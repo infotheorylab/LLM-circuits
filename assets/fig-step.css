@@ -1,1 +1,30 @@
-/* fig-step: placeholder. */
+/* fig-step: the hard prompt, one decision at a time (assets/fig-step.js). */
+
+/* the figure keeps one unit per CSS pixel; a capped height would shrink its words */
+[data-fig="step"] .fig-svg svg { max-height: none; }
+
+[data-fig="step"] .stp-btns { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+[data-fig="step"] .stp-next svg { width: 12px; height: 12px; }
+[data-fig="step"] .stp-next:disabled { opacity: .45; cursor: default; background: var(--accent-soft); border-color: var(--accent-brd); }
+
+[data-fig="step"] .stp-head { font-family: var(--font-display); font-size: 16px; font-weight: 600; fill: var(--ink); letter-spacing: -0.01em; }
+[data-fig="step"] .stp-col { font-size: 14px; fill: var(--muted); }
+
+[data-fig="step"] .stp-body { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1; }
+[data-fig="step"] .stp-stripe { fill: var(--line-2); }
+[data-fig="step"] .stp-row.t0 .stp-stripe { fill: var(--cost-0); }
+[data-fig="step"] .stp-row.t1 .stp-stripe { fill: var(--cost-1); }
+[data-fig="step"] .stp-row.t2 .stp-stripe { fill: var(--cost-2); }
+[data-fig="step"] .stp-lbl { font-size: 15px; fill: var(--ink); }
+[data-fig="step"] .stp-then { fill: var(--muted); }
+[data-fig="step"] .stp-probe { font-weight: 600; }
+[data-fig="step"] .stp-num { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--ink); }
+
+/* the option the circuit takes */
+[data-fig="step"] .stp-row.on .stp-body { stroke: var(--belief); stroke-width: 2.2; fill: #FFFBF0; }
+[data-fig="step"] .stp-row.on .stp-name { font-weight: 600; }
+[data-fig="step"] .stp-row.on .stp-num { fill: var(--belief-ink); }
+
+[data-fig="step"] .stp-why { font-size: 14.5px; fill: var(--ink-2); }
+[data-fig="step"] .stp-lead { font-weight: 600; fill: var(--ink); }
+[data-fig="step"] .stp-ans { font-family: var(--font-display); font-size: 16px; font-weight: 600; fill: var(--ink); letter-spacing: -0.01em; }

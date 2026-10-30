@@ -1,1 +1,101 @@
-/* fig-frontier: placeholder. */
+/* fig-frontier: the results chart (accuracy against cost, five tasks). */
+
+/* the chart keeps its own size; a shorter max-height would shrink its words */
+[data-fig="frontier"] .fig-svg { position: relative; }
+[data-fig="frontier"] .fig-svg svg { max-height: none; overflow: hidden; }
+
+/* ---- tabs, task line, legend (HTML) ---- */
+[data-fig="frontier"] .fx-ui { margin: 2px 0 10px; }
+[data-fig="frontier"] .fx-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+[data-fig="frontier"] .fx-tabs button { font: 500 14.5px/1.2 var(--font-body); color: var(--ink-2); background: var(--paper-hi); border: 1px solid var(--line-2); border-radius: 999px; padding: 7px 15px; cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease; }
+[data-fig="frontier"] .fx-tabs button:hover { border-color: var(--accent); color: var(--ink); }
+[data-fig="frontier"] .fx-tabs button[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
+[data-fig="frontier"] .fx-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+[data-fig="frontier"] .fx-sub { margin: 14px 0 0; font-size: 15.5px; line-height: 1.45; color: var(--ink-2); }
+[data-fig="frontier"] .fx-sub b { color: var(--ink); font-weight: 600; margin-right: 8px; }
+
+[data-fig="frontier"] .fx-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin-top: 10px; font-size: 14px; color: var(--ink-2); line-height: 1.4; }
+[data-fig="frontier"] .fx-li { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; transition: opacity .45s ease; }
+[data-fig="frontier"] .fx-li[data-s="lm"] { color: var(--ink); font-weight: 600; }
+[data-fig="frontier"] .fx-li.fx-wait { opacity: .25; }
+[data-fig="frontier"] .fx-key { width: 28px; height: 16px; flex: none; overflow: visible; }
+[data-fig="frontier"] .fx-li[data-s="mod"] .fx-key { width: 40px; }
+[data-fig="frontier"] .fx-li[data-s="maj"] .fx-key { width: 16px; }
+[data-fig="frontier"] .fx-key .k-lm { stroke: var(--belief); stroke-width: 3; stroke-linecap: round; }
+[data-fig="frontier"] .fx-key .k-ci { stroke: var(--belief); stroke-width: 1.8; stroke-linecap: round; }
+[data-fig="frontier"] .fx-key .k-bl { stroke: #9AA2B4; stroke-width: 1.6; stroke-linecap: round; }
+[data-fig="frontier"] .fx-key .k-t0 { fill: var(--cost-0); } [data-fig="frontier"] .fx-key .k-t1 { fill: var(--cost-1); } [data-fig="frontier"] .fx-key .k-t2 { fill: var(--cost-2); }
+[data-fig="frontier"] .fx-key .k-maj { fill: var(--ink-2); }
+
+/* ---- the chart (SVG) ---- */
+[data-fig="frontier"] .fx-grid { stroke: var(--line); stroke-width: 1; }
+[data-fig="frontier"] .fx-axis { stroke: var(--line-2); stroke-width: 1; }
+[data-fig="frontier"] .fx-tick { font-size: 14px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+[data-fig="frontier"] .fx-axt { font-size: 14.5px; fill: var(--ink-2); }
+
+[data-fig="frontier"] .fx-bl path { fill: none; stroke: #9AA2B4; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+[data-fig="frontier"] .fx-bl .fx-bl-pt { fill: var(--surface); stroke: #9AA2B4; stroke-width: 1.5; }
+[data-fig="frontier"] .fx-bl .fx-bl-bars { display: none; }
+[data-fig="frontier"] .fx-bl-ci line { stroke: var(--ink-2); stroke-width: 1.3; stroke-linecap: round; }
+[data-fig="frontier"] .fx-bl { transition: opacity .2s ease; }
+[data-fig="frontier"] .fx-bl.hl path { stroke: var(--ink-2); stroke-width: 2.2; }
+[data-fig="frontier"] .fx-bl.hl .fx-bl-pt { stroke: var(--ink-2); stroke-width: 2; }
+[data-fig="frontier"] .fx-bl.hl .fx-bl-bars { display: inline; }
+[data-fig="frontier"] svg.fx-dim .fx-bl:not(.hl) { opacity: .3; }
+
+[data-fig="frontier"] .fx-other path { fill: var(--line-2); stroke: var(--surface); stroke-width: 1.5; }
+[data-fig="frontier"] .fx-maj path { fill: var(--ink-2); stroke: var(--surface); stroke-width: 2; }
+[data-fig="frontier"] .fx-maj-ci line { stroke: var(--ink-2); stroke-width: 1.4; stroke-linecap: round; }
+
+[data-fig="frontier"] .fx-mod path { stroke: var(--surface); stroke-width: 2; }
+[data-fig="frontier"] .fx-mod.t0 path { fill: var(--cost-0); }
+[data-fig="frontier"] .fx-mod.t1 path { fill: var(--cost-1); }
+[data-fig="frontier"] .fx-mod.t2 path { fill: var(--cost-2); }
+[data-fig="frontier"] .fx-mod.on path, [data-fig="frontier"] .fx-other.on path { stroke: var(--ink); stroke-width: 2.2; }
+[data-fig="frontier"] .fx-maj.on path { stroke: var(--ink); }
+
+[data-fig="frontier"] .fx-lm { fill: none; stroke: var(--belief); stroke-width: 3.2; stroke-linejoin: round; stroke-linecap: round; }
+[data-fig="frontier"] .fx-ci line { stroke: var(--belief); stroke-width: 1.8; stroke-linecap: round; }
+
+[data-fig="frontier"] .fx-lbl { font-size: 14px; fill: var(--ink-2); }
+[data-fig="frontier"] .fx-lbl.lm { font-size: 15px; font-weight: 700; fill: var(--ink); }
+[data-fig="frontier"] .fx-lbl.maj { fill: var(--ink-2); }
+[data-fig="frontier"] .fx-tie { stroke: var(--muted); stroke-width: 1; }
+
+/* budget markers and their notes */
+[data-fig="frontier"] .fx-mk circle { fill: var(--belief); stroke: var(--surface); stroke-width: 2.5; }
+[data-fig="frontier"] .fx-mk.on circle { stroke: var(--ink); }
+[data-fig="frontier"] .fx-lbl.letter { font-size: 14px; font-weight: 700; fill: var(--belief-ink); }
+[data-fig="frontier"] .fx-leader { stroke: var(--belief); stroke-width: 1.2; }
+[data-fig="frontier"] .n-h { font-size: 14px; fill: var(--muted); }
+[data-fig="frontier"] .n-v { font-size: 16px; font-weight: 600; fill: var(--ink); }
+[data-fig="frontier"] .n-m { font-size: 14.5px; fill: var(--ink-2); }
+[data-fig="frontier"] .fx-note.rows .n-h { font-weight: 600; fill: var(--ink); }
+
+/* hit areas: invisible, bigger than the marks, live once the chart is drawn */
+[data-fig="frontier"] .fx-hits { pointer-events: none; }
+[data-fig="frontier"] svg.fx-ready .fx-hits { pointer-events: auto; }
+[data-fig="frontier"] .fx-hits circle, [data-fig="frontier"] .fx-hits rect { fill: #000; opacity: 0; }
+[data-fig="frontier"] .fx-hits circle { cursor: pointer; }
+[data-fig="frontier"] .fx-hits :focus { outline: none; }
+
+/* ---- tooltip (HTML) ---- */
+[data-fig="frontier"] .fx-tip { position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; max-width: 260px; background: var(--paper-hi); border: 1px solid var(--line-2); border-radius: 10px; padding: 8px 12px 9px; box-shadow: 0 6px 20px rgba(23,40,77,.12); font-size: 14px; line-height: 1.4; color: var(--ink-2); visibility: hidden; opacity: 0; transition: opacity .12s ease; }
+[data-fig="frontier"] .fx-tip.on { visibility: visible; opacity: 1; }
+[data-fig="frontier"] .fx-tip .k { color: var(--muted); }
+[data-fig="frontier"] .fx-tip .v { font-size: 16px; font-weight: 700; color: var(--ink); }
+[data-fig="frontier"] .fx-err { margin: 24px 0; font-size: 15px; color: var(--ink-2); }
+
+/* a phone gets the figure edge to edge, less its 8px margins */
+@media (max-width: 560px) {
+  /* site.css gives every .fig a -6px side margin under 600px, which undoes the
+     centring of .figure (margin-left 50% with a -50% shift); put it back */
+  [data-fig="frontier"].figure { width: calc(100vw - 16px); margin-left: 50%; margin-right: 0; padding: 14px 12px 14px; }
+  [data-fig="frontier"] .fx-tabs { gap: 6px; }
+  [data-fig="frontier"] .fx-tabs button { font-size: 14px; padding: 6px 12px; }
+  [data-fig="frontier"] .fx-sub { font-size: 15px; }
+  [data-fig="frontier"] .fx-legend { gap: 6px 16px; }
+  [data-fig="frontier"] .fx-tick { font-size: 13px; }
+  [data-fig="frontier"] .fx-axt { font-size: 14px; }
+}

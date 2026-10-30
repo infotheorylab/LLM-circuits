@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-30",
+  "count": 456,
+  "distinct_count": 351,
+  "paid_count": 430,
+  "free_count": 19,
+  "min_input_usd_per_mtok": 0.006,
+  "median_input_usd_per_mtok": 0.5,
+  "max_input_usd_per_mtok": 30.0,
+  "source": "https://openrouter.ai/api/v1/models"
+}

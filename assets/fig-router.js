@@ -1,1 +1,274 @@
-/* fig-router: placeholder, filled in by its figure build. */
+/* fig-router: what the prompt classifier changes.
+
+   Two prompts, easy and hard, side by side (stacked when the figure is narrow).
+   For each, the prompt classifier reads the prompt and gives two things: the
+   chance the response is harmful, and each model's chance of being right on
+   this prompt. Below it, the path the circuit then takes. The paths come from
+   LC.dp.runPrompt and the comparison from LC.dp.runBlind, so the figure follows
+   LC.PROMPTS if those illustrative numbers change.
+
+   The drawing is made at the figure's own width (one unit per CSS pixel), so
+   type keeps its size; below SIDE_MIN units the two columns are stacked. */
+(function () {
+  'use strict';
+  var h = LC.h, kit = LC.kit, M = LC.MODELS;
+
+  var PAD = 1.5;                 // keeps the outer strokes inside the viewBox
+  var IN = 14;                   // inner padding of the classifier box
+  var ROW = 24;                  // one model row in the box
+  var BOX_H = 116 + 2 * ROW + 14;
+  var LINK = 22;                 // prompt card to classifier box
+  var STEM = 24;                 // between the steps of the circuit's path
+  var ST_W = 156, ST_H = 52;     // a model station
+  var NOTE_H = 40;               // in place of a station: "No model asked"
+  var SIDE_MIN = 456;            // narrower than this, "Chance each model is right" no longer fits a column
+
+  var PROMPTS = [
+    { name: 'easy', title: 'Easy prompt' },
+    { name: 'hard', title: 'Hard prompt' }
+  ];
+
+  function coinsOf(steps) {
+    return steps.reduce(function (c, s) { return c + (s.act === 'ask' ? M[s.i].coins : 0); }, 0);
+  }
+  function coinText(n) { return n === 1 ? '1 coin' : n + ' coins'; }
+
+  /* Rewrap a card's quote at the narrowest width that keeps its line count,
+     so no word is left alone on the last line. The card's height still fits. */
+  function balance(t, str, width) {
+    var n = h.wrap(t, str, width, 21), lo = width / 2, hi = width;
+    while (hi - lo > 2) {
+      var mid = (lo + hi) / 2;
+      if (h.wrap(t, str, mid, 21) > n) lo = mid; else hi = mid;
+    }
+    h.wrap(t, str, hi, 21);
+  }
+
+  // a dot down the link into the classifier; it goes away as soon as a Replay replaces the run
+  async function pulse(path, alive) {
+    var L = path.getTotalLength();
+    var dot = h.svgEl('circle', { 'class': 'pulse', r: 5 }, path.parentNode);
+    await h.tween(500, function (t) {
+      if (!alive()) { dot.remove(); return; }
+      var p = path.getPointAtLength(L * t);
+      dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y);
+    });
+    dot.remove();
+  }
+
+  // a straight segment that draws itself in (its length is its dash)
+  function segment(g, x, y1, y2, cls) {
+    var p = h.svgEl('path', { 'class': cls, d: 'M' + x + ',' + y1 + ' L' + x + ',' + y2 }, g);
+    var len = y2 - y1;
+    return {
+      el: p, len: len,
+      set: function (t) { p.style.strokeDasharray = len; p.style.strokeDashoffset = len * (1 - t); }
+    };
+  }
+
+  function bar(g, x, y, w, v, cls, value) {
+    h.svgEl('rect', { 'class': 'rt-track', x: x, y: y, width: w, height: 8, rx: 4 }, g);
+    var f = h.svgEl('rect', { 'class': 'rt-fill ' + cls, x: x, y: y, width: 0, height: 8, rx: 4 }, g);
+    return function (t) { f.setAttribute('width', w * v * t); value.style.opacity = t; };
+  }
+
+  /* The classifier's reading of one prompt. The rows of the models the circuit
+     goes on to ask are marked, which ties the reading to the path below it. */
+  function classifierBox(g, y, w, p, asked) {
+    var bg = h.svgEl('g', { transform: 'translate(0,' + y + ')' }, g);
+    var box = h.svgEl('rect', { 'class': 'rt-box', x: 0, y: 0, width: w, height: BOX_H, rx: 12 }, bg);
+    h.label(bg, IN, 25, 'Prompt classifier', 'rt-title');
+    var bars = [], picks = [];
+    h.label(bg, IN, 52, 'Chance harmful', 'rt-k');
+    var qv = h.label(bg, w - IN, 52, h.pct(p.prior), 'rt-v q', { 'text-anchor': 'end' });
+    bars.push(bar(bg, IN, 60, w - 2 * IN, p.prior, 'q', qv));
+    h.label(bg, IN, 92, 'Chance each model is right', 'rt-k');
+    var full = w - 2 * IN >= 290;            // full model names when they fit beside a usable bar
+    var bx = IN + (full ? 104 : 42), bw = w - IN - 48 - bx;
+    M.forEach(function (m, i) {
+      var by = 116 + i * ROW;
+      if (asked.indexOf(i) >= 0) {
+        picks.push(h.svgEl('rect', { 'class': 'rt-pick', x: IN - 8, y: by - 17, width: w - 2 * IN + 16, height: ROW, rx: 7 }, bg));
+      }
+      h.label(bg, IN, by, full ? m.name : m.short, 'rt-m t-c' + m.tier);
+      var v = h.label(bg, w - IN, by, h.pct(p.acc[i]), 'rt-v', { 'text-anchor': 'end' });
+      bars.push(bar(bg, bx, by - 9, bw, p.acc[i], 'c' + m.tier, v));
+    });
+    return { box: box, bars: bars, picks: picks };
+  }
+
+  /* One column: the prompt card, the classifier box, then the circuit's path
+     down to its answer and what it spent. `slots` is how many station rows to
+     reserve, so that the answers of both columns line up when side by side;
+     `room` is the empty width to the right of the column. */
+  function column(g, x, y, cw, col, cardH, slots, slotH, stacked, room) {
+    var cg = col.g, cx = cw / 2, asks = col.asks;
+    cg.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+    col.card.g.querySelector('.pc-body').setAttribute('height', cardH);
+
+    var link = h.svgEl('path', { 'class': 'rt-wire', d: 'M' + cx + ',' + cardH + ' L' + cx + ',' + (cardH + LINK) }, cg);
+    var cb = classifierBox(cg, cardH + LINK, cw, col.p, asks.map(function (s) { return s.i; }));
+
+    // the path: stems and stations, then the answer
+    var steps = [], top = cardH + LINK + BOX_H, chipTop = top + slots * (STEM + slotH) + STEM;
+    asks.forEach(function (s, j) {
+      var last = j === asks.length - 1;
+      steps.push({ seg: segment(cg, cx, top, top + STEM, 'rt-path') });
+      var st = kit.station(cg, cx - ST_W / 2, top + STEM, M[s.i], { w: ST_W, h: ST_H });
+      steps.push({ st: st });
+      top += STEM + ST_H;
+      if (last) steps.push({ seg: segment(cg, cx, top, chipTop, 'rt-path') });
+    });
+    var note = null;
+    if (!asks.length) {
+      steps.push({ seg: segment(cg, cx, top, chipTop, 'rt-path') });
+      var ny = (top + chipTop) / 2 + 5;
+      note = h.label(cg, cx + 12, ny, 'No model asked', 'rt-note');
+      // beside the stem; it may run into empty space right of the column, else it breaks in two
+      if (cx + 12 + note.getComputedTextLength() > cw + room) {
+        note.textContent = '';
+        h.svgEl('tspan', { x: cx + 12, y: ny - 10 }, note).textContent = 'No model';
+        h.svgEl('tspan', { x: cx + 12, y: ny + 10 }, note).textContent = 'asked';
+      }
+    }
+    var chipCY = chipTop + 14;
+    var chip = kit.chip(cg, cx, chipCY, col.steps[col.steps.length - 1].predict);
+    var spent = h.label(cg, cx, chipCY + 14 + 26, 'spent ' + coinText(col.coins), 'rt-spent', { 'text-anchor': 'middle' });
+    var bottom = chipCY + 14 + 26;
+    var blind = null;
+    if (stacked) {
+      blind = h.label(cg, cx, bottom + 24, 'Without the prompt classifier: ' + coinText(col.blind), 'rt-blind', { 'text-anchor': 'middle' });
+      bottom += 24;
+    }
+    return {
+      link: link, cb: cb, steps: steps, note: note, chip: chip, cx: cx, chipCY: chipCY,
+      spent: spent, blind: blind, bottom: bottom
+    };
+  }
+
+  LC.figure('router', function (fig, ctx) {
+    h.head(fig, '');
+
+    var cs = getComputedStyle(fig);
+    var inner = ctx.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    var W = Math.round(Math.max(280, Math.min(inner, 720)));
+    var side = W >= SIDE_MIN;
+    var svg = h.makeSvg(fig, W, 600);
+    var g = h.svgEl('g', { transform: 'translate(' + PAD + ',' + PAD + ')' }, svg);
+    var w = W - 2 * PAD;
+    var gap = side ? Math.round(Math.max(20, Math.min(40, w * .05))) : 0;
+    var cw = side ? (w - gap) / 2 : w;
+
+    var cols = PROMPTS.map(function (pr) {
+      var steps = LC.dp.runPrompt(pr.name);
+      var col = {
+        p: LC.PROMPTS[pr.name], steps: steps,
+        asks: steps.filter(function (s) { return s.act === 'ask'; }),
+        coins: coinsOf(steps), blind: coinsOf(LC.dp.runBlind(pr.name)),
+        g: h.svgEl('g', {}, g)
+      };
+      col.card = kit.promptCard(col.g, 0, 0, cw, col.p.text, { title: pr.title });
+      balance(col.card.text, '“' + col.p.text + '”', cw - 32);
+      return col;
+    });
+
+    var views, H, foot = [];
+    if (side) {
+      // shared rows, so both answers and both totals line up
+      var cardH = Math.max(cols[0].card.h, cols[1].card.h);
+      var most = Math.max(cols[0].asks.length, cols[1].asks.length);
+      var slotH = most ? ST_H : NOTE_H;
+      views = cols.map(function (col, k) {
+        return column(g, k * (cw + gap), 0, cw, col, cardH, Math.max(1, most), slotH, false, k ? 0 : gap - 6);
+      });
+      var lineY = views[0].bottom + 24;
+      foot.push(h.svgEl('line', { 'class': 'rt-rule', x1: 0, y1: lineY, x2: w, y2: lineY }, g));
+      foot.push(h.label(g, w / 2, lineY + 28, 'Without the prompt classifier', 'rt-blind-k', { 'text-anchor': 'middle' }));
+      views.forEach(function (v, k) {
+        foot.push(h.label(g, k * (cw + gap) + v.cx, lineY + 52, 'spent ' + coinText(cols[k].blind), 'rt-blind-v', { 'text-anchor': 'middle' }));
+      });
+      H = lineY + 52 + 8;
+    } else {
+      var y = 0;
+      views = cols.map(function (col, k) {
+        if (k) {
+          foot.push(h.svgEl('line', { 'class': 'rt-rule', x1: 0, y1: y + 20, x2: w, y2: y + 20 }, g));
+          y += 44;
+        }
+        var v = column(g, 0, y, cw, col, col.card.h, Math.max(1, col.asks.length), col.asks.length ? ST_H : NOTE_H, true, 0);
+        y += v.bottom;
+        return v;
+      });
+      H = y + 8;
+    }
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + Math.ceil(H + 2 * PAD));
+
+    function chipAt(v, t) {
+      // pops from 90% to full size about its centre
+      var s = .9 + .1 * t;
+      v.chip.setAttribute('transform', 'translate(' + v.cx + ',' + v.chipCY + ') scale(' + s + ') translate(' + (-v.cx) + ',' + (-v.chipCY) + ')');
+      v.chip.style.opacity = t;
+    }
+    function reset() {
+      views.forEach(function (v) {
+        v.cb.box.setAttribute('class', 'rt-box');
+        v.cb.bars.forEach(function (set) { set(0); });
+        v.cb.picks.forEach(function (r) { r.style.opacity = 0; });
+        v.steps.forEach(function (s) {
+          if (s.seg) s.seg.set(0);
+          else { s.st.g.style.opacity = 0; s.st.state(''); }
+        });
+        if (v.note) v.note.style.opacity = 0;
+        chipAt(v, 0);
+        v.spent.style.opacity = 0;
+        if (v.blind) v.blind.style.opacity = 0;
+      });
+      if (side) foot.forEach(function (n) { n.style.opacity = 0; });
+    }
+    reset();
+
+    function fade(node, ms, alive) {
+      return h.tween(ms, function (t) { if (alive()) node.style.opacity = t; });
+    }
+
+    return async function play(alive) {
+      reset();
+      await h.sleep(400);
+      for (var k = 0; k < views.length; k++) {
+        var v = views[k];
+        if (!alive()) return;
+        // the classifier reads the prompt
+        await pulse(v.link, alive);
+        if (!alive()) return;
+        v.cb.box.setAttribute('class', 'rt-box lit');
+        await h.tween(800, function (t) { if (alive()) v.cb.bars.forEach(function (set) { set(t); }); });
+        if (!alive()) return;
+        v.cb.box.setAttribute('class', 'rt-box');
+        await h.sleep(250);
+        await h.tween(350, function (t) { if (alive()) v.cb.picks.forEach(function (r) { r.style.opacity = t; }); });
+        if (!alive()) return;
+        await h.sleep(200);
+        // the circuit's path, step by step
+        for (var j = 0; j < v.steps.length; j++) {
+          var s = v.steps[j];
+          if (!alive()) return;
+          if (s.seg) {
+            if (v.note) fade(v.note, 600, alive);
+            await h.tween(Math.max(320, s.seg.len * 4), function (t) { if (alive()) s.seg.set(t); });
+          } else {
+            s.st.state('on');
+            await fade(s.st.g, 300, alive);
+            await h.sleep(450);
+          }
+        }
+        if (!alive()) return;
+        await h.tween(280, function (t) { if (alive()) chipAt(v, t); });
+        await fade(v.spent, 350, alive);
+        if (v.blind) { await h.sleep(250); await fade(v.blind, 450, alive); }
+        await h.sleep(500);
+      }
+      if (!alive() || !side) return;
+      await Promise.all(foot.map(function (n) { return fade(n, 600, alive); }));
+    };
+  });
+})();

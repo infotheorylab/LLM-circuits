@@ -7,7 +7,7 @@
      LC.h        SVG and animation helpers
      LC.MODELS   the three models of the explanatory figures
      LC.PROMPTS  the example prompts (easy, medium, hard)
-     LC.belief   Bayes updates of the chance a response is harmful
+     LC.belief   Bayes updates of the chance a prompt is harmful
      LC.dp       the dynamic program over the answers seen so far
      LC.kit      drawing pieces: model station, answer chip, confidence bar,
                  cost meter, prompt card
@@ -127,11 +127,12 @@
   }
   function show(node, on) { node.style.opacity = on ? 1 : 0; }
   function pct(q) { return Math.round(q * 100) + '%'; }
-  // a dot travelling along an SVG path
-  async function pulse(parent, path, ms) {
+  // a dot travelling along an SVG path; it vanishes early once alive() turns false
+  async function pulse(parent, path, ms, alive) {
     var L = path.getTotalLength();
     var dot = svgEl('circle', { 'class': 'pulse', r: 5 }, parent);
     await tween(ms || 550, function (t) {
+      if (alive && !alive()) { dot.remove(); return; }
       var p = path.getPointAtLength(L * t);
       dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y);
     });
@@ -146,8 +147,8 @@
      The explanatory figures (cover, circuits, ask-or-stop, dynamic program,
      routing) share three models from the BeaverTails pool of the paper. Names are
      real; accuracies are rounded, illustrative values, and cost is in coins per
-     call (relative cost). Belief everywhere is the chance the response is
-     HARMFUL, and an answer x is 1 for "harmful", 0 for "safe".
+     call (relative cost). Belief everywhere is the chance the prompt is
+     HARMFUL (as in the paper's Figure 1), and an answer x is 1 for "harmful", 0 for "safe".
      MODELS[i].acc is a model's accuracy over all prompts: what a circuit without
      a prompt classifier has to assume. */
   var MODELS = [
@@ -155,9 +156,8 @@
     { id: 'gemma-26b', name: 'Gemma 4 26B', short: '26B', tier: 1, coins: 2, acc: .78, size: 'medium' },
     { id: 'gemma-31b', name: 'Gemma 4 31B', short: '31B', tier: 2, coins: 5, acc: .86, size: 'large' }
   ];
-  /* Example prompts (BeaverTails asks whether a model's response to the prompt is
-     harmful). What the prompt classifier predicts for each prompt:
-       prior    the chance the response is harmful, before any model is asked
+  /* Example prompts. What the prompt classifier predicts for each prompt:
+       prior    the chance the prompt is harmful, before any model is asked
        acc      each model's chance of answering this prompt correctly
      `answers` are what the three models say if asked, `label` the truth.
      With these, the dynamic program at LAMBDA answers the easy prompt with no
@@ -270,11 +270,12 @@
       label(g, cx, cy + 5, txt, 'chip-t', { 'text-anchor': 'middle' });
       return g;
     },
-    /* The confidence bar: the chance the response is harmful, with the "sure"
-       zones at both ends. set(q) moves it (animated unless instant). */
+    /* The confidence bar: the chance the prompt is harmful, with the "sure"
+       zones at both ends. set(q) moves it (animated unless instant); a newer
+       set() cancels a move still running. */
     beliefBar: function (parent, x, y, w, opts) {
       opts = opts || {};
-      var sure = opts.sure || .1;
+      var sure = opts.sure || .12;
       var g = svgEl('g', { 'class': 'bbar', transform: 'translate(' + x + ',' + y + ')' }, parent);
       svgEl('rect', { 'class': 'bb-track', x: 0, y: 0, width: w, height: 12, rx: 6 }, g);
       svgEl('rect', { 'class': 'bb-sure s', x: 0, y: 0, width: w * sure, height: 12, rx: 6 }, g);
@@ -284,7 +285,7 @@
       label(g, w, 36, 'harmful', 'bb-end', { 'text-anchor': 'end' });
       var mk = svgEl('circle', { 'class': 'bb-marker', cx: 0, cy: 6, r: 9 }, g);
       var val = label(g, 0, -12, '', 'bb-val', { 'text-anchor': 'middle' });
-      var cur = null;
+      var cur = null, moves = 0;
       function place(q) {
         var px = w * q;
         mk.setAttribute('cx', px);
@@ -294,9 +295,10 @@
       return {
         g: g,
         set: function (q, instant) {
+          var id = ++moves;
           if (cur === null || instant) { cur = q; place(q); return Promise.resolve(); }
           var from = cur; cur = q;
-          return tween(650, function (t) { place(from + (q - from) * t); });
+          return tween(650, function (t) { if (id === moves) place(from + (q - from) * t); });
         },
         get: function () { return cur; }
       };
@@ -376,7 +378,9 @@
       // rebuild when the figure crosses the narrow / wide breakpoint
       if ('ResizeObserver' in window) {
         new ResizeObserver(function () {
-          if (ctx().narrow === narrow) return;
+          // a figure is never really this thin; screenshots that render beyond the
+          // viewport briefly report such widths, and rebuilding then breaks the run
+          if (fig.clientWidth < 160 || ctx().narrow === narrow) return;
           run++; construct(); if (played) start();
         }).observe(fig);
       }
