@@ -30,6 +30,8 @@
   if (QA) document.documentElement.dataset.qa = '';
   var NS = 'http://www.w3.org/2000/svg';
   var NARROW_PX = 520;           // a figure narrower than this uses its narrow layout
+  var ONLY = (params.match(/[?&]only=([^&]+)/) || [])[1];   // ?only=hero,dp mounts just those figures
+  ONLY = ONLY ? decodeURIComponent(ONLY).split(',') : null;
 
   /* ---------------------------------------------------------------- helpers */
 
@@ -340,6 +342,7 @@
     var pending = [];
     document.querySelectorAll('[data-fig]').forEach(function (fig) {
       var name = fig.dataset.fig;
+      if (ONLY && ONLY.indexOf(name) < 0) return;
       var build = (STYLE === 'pixel' && figures[name + '-pixel']) || figures[name];
       if (!build) return;
       var run = 0, play = null, played = false, narrow = null;
@@ -351,7 +354,8 @@
         var c = ctx();
         narrow = c.narrow;
         fig.classList.add('armed');
-        play = build(fig, c);
+        try { play = build(fig, c); }
+        catch (e) { play = null; console.error('[fig:' + name + '] build failed:', e); }
         var replay = fig.querySelector('[data-replay]');
         if (replay && !replay._lc) { replay._lc = true; replay.addEventListener('click', start); }
       }
@@ -361,8 +365,10 @@
         var mine = ++run;
         var replay = fig.querySelector('[data-replay]');
         if (replay) replay.classList.remove('nudge');
-        var done = play(function () { return mine === run; });
-        return Promise.resolve(done).then(function () {
+        var done;
+        try { done = play(function () { return mine === run; }); }
+        catch (e) { console.error('[fig:' + name + '] play failed:', e); return Promise.resolve(); }
+        return Promise.resolve(done).catch(function (e) { console.error('[fig:' + name + '] play failed:', e); }).then(function () {
           if (mine === run && replay && !REDUCE) { void replay.offsetWidth; replay.classList.add('nudge'); }
         });
       }

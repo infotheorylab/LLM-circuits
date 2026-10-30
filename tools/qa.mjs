@@ -31,6 +31,7 @@ const WIDTHS = String(args.widths || '1440,390').split(',').map(Number);
 const ONLY = args.fig ? String(args.fig).split(',') : null;
 const OUT = resolve(String(args.out || join(ROOT, 'qa-out')));
 const QUERY = args.query ? '&' + String(args.query) : '';
+const ONLYQ = ONLY && !args.all ? '&only=' + encodeURIComponent(ONLY.join(',')) : '';   // --all mounts every figure
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
@@ -187,7 +188,7 @@ async function main() {
   for (const w of WIDTHS) {
     const h = w < 600 ? 844 : 900;
     await c.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: w < 600 });
-    await c.send('Page.navigate', { url: `http://127.0.0.1:${port}/index.html?qa${QUERY}` });
+    await c.send('Page.navigate', { url: `http://127.0.0.1:${port}/index.html?qa${QUERY}${ONLYQ}` });
     let done = false;
     for (let i = 0; i < 200 && !done; i++) {
       await new Promise(r => setTimeout(r, 100));
