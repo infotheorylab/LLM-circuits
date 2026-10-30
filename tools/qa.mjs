@@ -2,7 +2,7 @@
 /* Layout checks and screenshots for index.html, in headless Chrome.
 
    node tools/qa.mjs [--widths 1440,390] [--fig hero,dp] [--query style=pixel]
-                     [--out qa-out] [--sections] [--full]
+                     [--out qa-out] [--sections] [--full] [--text copy.txt]
 
    Serves the site from its root, loads index.html?qa (every figure jumps to its
    final frame) at each width, and reports for every figure:
@@ -220,6 +220,27 @@ async function main() {
         const shot = await c.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: s.y, width: s.w, height: Math.min(s.h, 4000), scale: 1 } });
         await writeFile(join(OUT, `section-${s.id}-${w}.png`), Buffer.from(shot.data, 'base64'));
       }
+    }
+    if (args.text && w === WIDTHS[0]) {
+      // every word a reader can meet: each screen, the words inside its figures
+      // (final state), the figures' screen-reader labels, and the sheets
+      const r = await c.send('Runtime.evaluate', { returnByValue: true, expression: `(function () {
+        var out = [];
+        document.querySelectorAll('[data-title]').forEach(function (s) {
+          out.push('## ' + s.dataset.title + ' (#' + s.id + ')', s.innerText.trim());
+          s.querySelectorAll('[data-fig]').forEach(function (f) {
+            var t = Array.from(f.querySelectorAll('svg text')).map(function (n) { return n.textContent.trim(); }).filter(Boolean);
+            if (t.length) out.push('[figure ' + f.dataset.fig + ', words in the drawing] ' + t.join(' | '));
+            if (f.getAttribute('aria-label')) out.push('[figure ' + f.dataset.fig + ', screen-reader label] ' + f.getAttribute('aria-label'));
+          });
+          out.push('');
+        });
+        document.querySelectorAll('dialog.sheet').forEach(function (d) {
+          d.show(); out.push('## Sheet: ' + d.id, d.innerText.trim(), ''); d.close();
+        });
+        return out.join('\\n');
+      })()` });
+      await writeFile(resolve(String(args.text)), r.result.value + '\n');
     }
     if (args.full) {
       const m = await c.send('Page.getLayoutMetrics');
