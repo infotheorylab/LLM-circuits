@@ -28,8 +28,27 @@
     if (cls) attrs['class'] = cls;
     for (var k in extra || {}) attrs[k] = extra[k];
     var t = svgEl('text', attrs, parent);
-    t.textContent = str;
+    if (str.indexOf('$') >= 0) mathSpans(t, str); else t.textContent = str;
     return t;
+  }
+  /* Math between $...$ is set in the KaTeX (Computer Modern) faces that katex.min.css
+     declares: single letters italic (.mi), words, digits and punctuation upright (.mr),
+     and _x a subscript. Falls back to the serif stack if KaTeX did not load. */
+  function mathSpans(t, str) {
+    var parts = str.split('$');
+    for (var i = 0; i < parts.length; i++) {
+      if (!parts[i]) continue;
+      if (i % 2 === 0) { svgEl('tspan', {}, t).textContent = parts[i]; continue; }
+      var re = /_([A-Za-z\u0370-\u03FF])|([A-Za-z\u0370-\u03FF]{2,})|([A-Za-z\u0370-\u03FF])|([^A-Za-z\u0370-\u03FF_]+)/g, m;
+      while ((m = re.exec(parts[i]))) {
+        if (m[1]) {
+          svgEl('tspan', { 'class': 'mi', dy: 3, style: 'font-size:75%' }, t).textContent = m[1];
+          svgEl('tspan', { dy: -3 }, t).textContent = '\u200B';
+        } else if (m[2]) svgEl('tspan', { 'class': 'mr' }, t).textContent = m[2];
+        else if (m[3]) svgEl('tspan', { 'class': 'mi' }, t).textContent = m[3];
+        else svgEl('tspan', { 'class': 'mr' }, t).textContent = m[4];
+      }
+    }
   }
   function makeSvg(fig, w, h) {
     var host = fig.querySelector('.fig-svg');
@@ -510,7 +529,7 @@
     svgEl('rect', { 'class': 'card', x: BXc, y: CY, width: BWc, height: CH, rx: 10 }, B);
     label(B, BXc + 16, CY + 24, 'ASK', 't-mono t-ink t-b');
     label(B, BXc + 52, CY + 24, INST[i].name, 't-mono t-' + INST[i].cls);
-    label(B, BXc + 100, CY + 24, 'pay ' + c.toFixed(2) + ' \u03BB now', 't-s t-ink');
+    label(B, BXc + 100, CY + 24, 'pay ' + c.toFixed(2) + ' $\u03BB$ now', 't-s t-ink');
     var COL = [BXc + 16, BXc + 86, BXc + 150, BXc + 222];
     var hdr = svgEl('g', { style: 'opacity:0' }, B);
     ['answer', 'how likely', 'belief after', 'error after'].forEach(function (h, k) { label(hdr, COL[k], CY + 52, h, 't-xs t-muted'); });
@@ -531,7 +550,7 @@
     label(eB, BXc + 16, CY + 148, pct(eAsk), 't-big t-ink t-b');
     label(eB, BXc + 70, CY + 148, '= ' + pct(ps) + ' \u00D7 ' + pct(e1) + ' + ' + pct(1 - ps) + ' \u00D7 ' + pct(e0), 't-xs t-muted');
 
-    var verdict = label(s, 240, 298, 'Asking wins whenever ' + pct(eStop) + ' \u2212 ' + pct(eAsk) + ' > ' + c.toFixed(2) + ' \u03BB, i.e. \u03BB < ' + lamStar.toFixed(1) + '. Then repeat from the new belief.', 't-s t-ink t-b', { 'text-anchor': 'middle', style: 'opacity:0' });
+    var verdict = label(s, 240, 298, 'Asking wins whenever ' + pct(eStop) + ' \u2212 ' + pct(eAsk) + ' > ' + c.toFixed(2) + ' $\u03BB$, i.e. $\u03BB$ < ' + lamStar.toFixed(1) + '. Then repeat from the new belief.', 't-s t-ink t-b', { 'text-anchor': 'middle', style: 'opacity:0' });
     var cardA = A.querySelector('rect'), cardB = B.querySelector('rect');
 
     return async function (alive) {
@@ -702,12 +721,12 @@
     label(s, 30, 54, '\u201CHow to convince someone', 't-xs t-ink');
     label(s, 30, 68, 'to take drugs\u2026\u201D + response', 't-xs t-ink');
     var a1 = arrow('M160,60 L186,60');
-    label(s, 250, 46, '\u03C6(z)  text embedding', 't-xs t-muted', { 'text-anchor': 'middle' });
+    label(s, 250, 46, '$\u03C6(z)$  text embedding', 't-xs t-muted', { 'text-anchor': 'middle' });
     var emb = [];
     for (var k = 0; k < 12; k++) emb.push(svgEl('rect', { 'class': 'emb', x: 190 + k * 10, y: 52, width: 10, height: 14, style: 'opacity:.12' }, s));
     var a2 = arrow('M250,66 L250,90');
     var net = svgEl('rect', { 'class': 'pbox', x: 190, y: 94, width: 120, height: 90, rx: 10 }, s);
-    label(s, 250, 110, 'f\u03B8', 't-mono t-ink t-b', { 'text-anchor': 'middle' });
+    label(s, 250, 110, '$f_\u03B8$', 't-ink t-big', { 'text-anchor': 'middle' });
     var neurons = [], syn = [];
     var L = [[206, [128, 150, 172]], [250, [134, 166]], [294, [128, 150, 172]]];
     L.forEach(function (col, ci) {
@@ -731,11 +750,12 @@
 
     var a4 = arrow('M310,120 L338,120');
     var a5 = arrow('M310,166 L338,166');
-    label(s, 344, 108, '\u03B7  belief  P(safe | z, history)', 't-xs t-belief');
+    label(s, 344, 108, '$\u03B7$  belief  $P(safe | z, history)$', 't-xs t-belief');
     svgEl('rect', { 'class': 'bar-bg', x: 344, y: 114, width: 96, height: 12, rx: 6 }, s);
     var bFill = svgEl('rect', { 'class': 'belief-fill', x: 344, y: 114, width: 0, height: 12, rx: 6 }, s);
     var bTxt = label(s, 446, 124, '', 't-xs t-belief');
-    label(s, 344, 150, '\u03BD\u1D62  P(i says safe | z, history)', 't-xs t-accent');
+    label(s, 344, 139, '$\u03BD_i$  instrument predictions', 't-xs t-accent');
+    label(s, 344, 151, '$P(i says safe | z, history)$', 't-xs t-accent', { style: 'font-size:9px' });
     var NU = [.48, .47, .47];
     var nuFill = INST.map(function (I, j) {
       var y = 156 + j * 12;
@@ -743,17 +763,17 @@
       svgEl('rect', { 'class': 'bar-bg', x: 374, y: y, width: 86, height: 8, rx: 4 }, s);
       return svgEl('rect', { 'class': 'bar-fill ' + I.cls, x: 374, y: y, width: 0, height: 8, rx: 4 }, s);
     });
-    var trainNote = label(s, 18, 200, 'trained with cross-entropy: \u03B7 against recorded labels, \u03BD against recorded calls', 't-xs t-muted', { style: 'opacity:0' });
+    var trainNote = label(s, 18, 200, 'trained with cross-entropy: $\u03B7$ against recorded labels, $\u03BD$ against recorded calls', 't-xs t-muted', { style: 'opacity:0' });
 
     /* ---- panel 2: generate the circuit ---- */
-    frame(222, 132, '2   Generate the circuit for any prompt and any \u03BB');
+    frame(222, 132, '2   Generate the circuit for any prompt and any $\u03BB$');
     var boxA = svgEl('rect', { 'class': 'pbox', x: 20, y: 252, width: 128, height: 56, rx: 10 }, s);
-    label(s, 84, 272, 'fitted model f\u03B8', 't-s t-ink t-b', { 'text-anchor': 'middle' });
-    label(s, 84, 288, '\u03B7 and \u03BD at every state', 't-xs t-muted', { 'text-anchor': 'middle' });
+    label(s, 84, 272, 'fitted model $f_\u03B8$', 't-s t-ink t-b', { 'text-anchor': 'middle' });
+    label(s, 84, 288, '$\u03B7$ and $\u03BD$ at every state', 't-xs t-muted', { 'text-anchor': 'middle' });
     var a6 = arrow('M148,280 L186,280');
     var dp = svgEl('rect', { 'class': 'pbox', x: 190, y: 252, width: 128, height: 56, rx: 10 }, s);
     label(s, 254, 272, 'dynamic program', 't-s t-ink t-b', { 'text-anchor': 'middle' });
-    label(s, 254, 288, 'query or stop, weight \u03BB', 't-xs t-muted', { 'text-anchor': 'middle' });
+    label(s, 254, 288, 'query or stop, weight $\u03BB$', 't-xs t-muted', { 'text-anchor': 'middle' });
     var a7 = arrow('M318,280 L356,280');
     var tree = svgEl('g', { style: 'opacity:0' }, s);
     svgEl('path', { 'class': 'edge on', d: 'M380,258 L380,272 L366,290' }, tree);
