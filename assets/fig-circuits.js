@@ -40,11 +40,10 @@
   var NET_S = .75;             // the prompt classifier icon at three quarters size, about 40 x 42
   var R = 10;                  // corner radius of the narrow layout's wires
   /* Pacing in ms. A signal moves at SPEED px per ms, so a short hop is quick
-     and the long run down the narrow layout's bus is not. Majority voting and
-     routing take about 4.5 s and the cascade about 5.5 s, so the first walk
-     reaches LMCircuit about 15 s after the figure comes into view. */
-  var T = { swap: 90, hub: 70, ask: 130, pred: 130, beat: 100, prompt: 360, circuit: 450 };
-  var SPEED = .85, WIRE_MIN = 100, WIRE_MAX = 300;
+     and the long run down the narrow layout's bus is not. Each answered prompt
+     stays on screen for T.prompt before the next one fades in. */
+  var T = { swap: 300, hub: 350, ask: 350, pred: 350, beat: 450, prompt: 1300, circuit: 1600 };
+  var SPEED = .5, WIRE_MIN = 280, WIRE_MAX = 700;
 
   function majority(xs) {
     var s = 0;
@@ -432,7 +431,7 @@
       rCalls.textContent = String(calls);
       var id = ++costMoves, from = spent;
       spent += cost;
-      return h.tween(400, function (t) { if (id === costMoves) rCost.textContent = h.usd(from + cost * t); });
+      return h.tween(600, function (t) { if (id === costMoves) rCost.textContent = h.usd(from + cost * t); });
     }
 
     /* ---- the sentence and the scoreboard, under the drawing */
@@ -505,7 +504,7 @@
             shown = true;
             var id = ++moves;
             if (!animate) { bar.setAttribute('width', bw); nums.style.opacity = 1; return; }
-            h.tween(520, function (t) {
+            h.tween(700, function (t) {
               if (id !== moves) return;
               bar.setAttribute('width', bw * t);
               nums.style.opacity = Math.min(1, t * 1.6);
@@ -553,7 +552,13 @@
       Wr.lit.forEach(function (n, k) { hubOn(k, false); });
       stations.forEach(function (s) { s.st.state(''); s.slot.clear(); });
       predV.textContent = '';
-      badges.forEach(function (b) { setVisible(b, false); });
+      badges.forEach(function (b) { setVisible(b, false); b.style.opacity = ''; });
+    }
+    // the answers and the prediction of the prompt just answered fade out with it
+    function fadeOld(t) {
+      stations.forEach(function (s) { s.slot.chips.forEach(function (c) { c.style.opacity = 1 - t; }); });
+      predV.style.opacity = 1 - t;
+      badges.forEach(function (b) { b.style.opacity = 1 - t; });
     }
     function select(i) {
       tabs.forEach(function (b, j) {
@@ -568,7 +573,7 @@
       var q0 = CIRCUITS[i].trace(ORDER[0]).q;
       readReset(CIRCUITS[i], q0 ? q0[0] : null);
       // the new wiring fades in rather than snapping into place
-      h.tween(260, function (t) { gWire.style.opacity = t; gHub.style.opacity = t; });
+      h.tween(400, function (t) { gWire.style.opacity = t; gHub.style.opacity = t; });
     }
 
     /* One prompt through circuit c. Returns whether it was right, or null when
@@ -579,7 +584,8 @@
       if (!await go(hold())) return null;
       // a new prompt fades in; the one already on the card stays put
       var swap = cardK !== k;
-      if (swap && !await go(h.tween(T.swap, function (t) { if (alive()) cText.style.opacity = 1 - t; }))) return null;
+      if (swap) allWires().forEach(function (wo) { wo.live(false); });
+      if (swap && !await go(h.tween(T.swap, function (t) { if (alive()) { cText.style.opacity = 1 - t; fadeOld(t); } }))) return null;
       resetPrompt();
       setCard(k);
       if (swap) cText.style.opacity = 0;

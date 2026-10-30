@@ -223,14 +223,6 @@ code { font-family: var(--font-mono); font-size: .86em; color: var(--ink); backg
 .linkish:hover { text-decoration-color: var(--accent); }
 
 /* three pieces (recipe) */
-/* LMCircuit, first look: three steps in a row, joined by a wire */
-.lmc-steps { list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; max-width: 980px; counter-reset: none; }
-.lmc-steps li { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px 22px; }
-.lmc-steps li + li::before { content: ""; position: absolute; left: -29px; top: 38px; width: 30px; border-top: 2.5px dashed var(--wire-live); }
-.lmc-steps .n { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: #FFFFFF; font: 800 16px/1 var(--font-display); }
-.lmc-steps h3 { font-size: 20px; margin: 12px 0 6px; }
-.lmc-steps p { font-size: 16px; line-height: 1.55; margin: 0; color: var(--ink-2); }
-@media (max-width: 760px) { .lmc-steps { grid-template-columns: 1fr; gap: 14px; } .lmc-steps li + li::before { display: none; } }
 .pieces { list-style: none; margin: 36px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 900px; column-gap: 52px; row-gap: 26px; }
 .pieces li { position: relative; }
 .pieces li + li::before { content: "+"; position: absolute; left: -36px; top: 8px; font: 500 30px/1 var(--font-display); color: var(--muted); }

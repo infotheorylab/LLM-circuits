@@ -1,11 +1,11 @@
-/* fig-question: the three questions, asked by a small circuit.
+/* fig-question: the two questions, asked by a small circuit.
 
    A prompt faces a pool of six models from the paper's pools. The drawing
-   follows the three questions above it and highlights each in turn:
-     1  Which LLMs should we ask?     the signal tries a few models, then picks one
-     2  More than one, in what order? three models are asked in turn, numbered
-                                      1, 2, 3, then the order is shuffled once
-     3  When should we stop?          answers arrive in the new order, the chance
+   follows the two questions above it and highlights each in turn:
+     1  Which LLMs should we ask,     the signal tries a few models and picks one;
+        and in what order?            then three models are asked in turn, numbered
+                                      1, 2, 3, and the order is shuffled once
+     2  When should we stop?          answers arrive in the new order, the chance
                                       harmful fills, and the circuit stops before
                                       the third model and predicts
    It loops while on screen and starts again from question 1 after a pause off
@@ -35,9 +35,9 @@
   var TRY = [4, 1, 3];          // question 1: the models the signal tries,
   var TRY_MS = [560, 470, 620]; //   and how long it stays on each,
   var PICK = 0;                 //   before it picks Gemma 4 E4B
-  var PLAN = [0, 5, 2];         // question 2: asked in this order (E4B, Jev, 31B),
+  var PLAN = [0, 5, 2];         //   then asked in this order (E4B, Jev, 31B),
   var SHUFFLE = [2, 0, 5];      //   then in this one (31B, E4B, Jev)
-  var ASKED = 2;                // question 3: two answers, then it stops before the third
+  var ASKED = 2;                // question 2: two answers, then it stops before the third
   var SAYS = 1;                 // both say harmful (only Gemma models answer, so LC.belief has their accuracy)
   var CHIP_W = 92;              // kit.chip width of HARMFUL
   var R = 11;                   // a number badge's radius
@@ -261,11 +261,12 @@
     }
     function settle(k) { block(k, ''); wire(k, 'on'); }
 
-    /* One pass through the three questions. ok() turns false when the run is
+    /* One pass through the two questions. ok() turns false when the run is
        replaced or the figure leaves the screen; the pass then stops early. */
     async function once(ok) {
       var j, k;
-      // 1. Which LLMs should we ask? The signal tries a few, then picks one.
+      // 1. Which LLMs should we ask, and in what order? The signal tries a
+      // few and picks one; then three in turn, then a new order.
       setQ(1);
       if (!await wait(900, ok)) return false;
       trunkState('live');
@@ -278,9 +279,7 @@
       }
       if (!await send(PICK, 650, ok) || !await wait(1300, ok)) return false;
 
-      // 2. More than one, and in what order? Three in turn, then a new order.
-      setQ(2);
-      if (!await wait(500, ok)) return false;
+      if (!await wait(300, ok)) return false;
       for (j = 0; j < PLAN.length; j++) {
         k = PLAN[j];
         if (j) { settle(PLAN[j - 1]); if (!await send(k, 550, ok)) return false; }
@@ -301,10 +300,10 @@
       }
       if (!await wait(1000, ok)) return false;
 
-      // 3. When should we stop? Answers arrive and the bar fills; the circuit
+      // 2. When should we stop? Answers arrive and the bar fills; the circuit
       // leans toward the third model, then stops and predicts. The numbers stay
       // as the plan; the wires light again only as each model is really asked.
-      setQ(3);
+      setQ(2);
       SHUFFLE.forEach(function (i) { wire(i, ''); });
       if (!await wait(600, ok)) return false;
       for (j = 0; j < ASKED; j++) {

@@ -14,18 +14,18 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.css" integrity="sha384-WwGtaC6ywCHxA5cstpj/3+xIZvTez8dq2IcBQaXRkenHZ7FVVq1ZROtURwfbtTlG" crossorigin="anonymous" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.js" integrity="sha384-a1WQdjRj162i159OYq041X6I4K8NenkrI09LlPmiHg0YOb7CR+wJOraXwK9abpnE" crossorigin="anonymous"></script>
 
-<link rel="stylesheet" href="./assets/site.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-cover.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-uses.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-noisy.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-question.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-circuits.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-step.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-dp.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-router.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-glue.css?v=8" />
-<link rel="stylesheet" href="./assets/fig-frontier.css?v=8" />
-<link rel="stylesheet" href="./assets/authors.css?v=8" />
+<link rel="stylesheet" href="./assets/site.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-cover.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-uses.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-noisy.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-question.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-circuits.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-step.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-dp.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-router.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-glue.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-frontier.css?v=9" />
+<link rel="stylesheet" href="./assets/authors.css?v=9" />
 </head>
 <body>
 
@@ -174,7 +174,7 @@
 <!-- ============ THE QUESTION ============ -->
 <section class="screen" id="question" data-title="The question">
   <div class="wrap">
-    <p class="ask"><span data-q="1">Which LLMs should we ask?</span><span data-q="2">Should we ask more than one, and in what order?</span><span data-q="3">When should we stop?</span></p>
+    <p class="ask"><span data-q="1">Which LLMs should we ask, and in what order?</span><span data-q="2">When should we stop?</span></p>
     <figure class="fig q-fig" data-fig="question" aria-label="A prompt, Is this prompt harmful?, and a pool of six models. First one model is picked. Then several are asked in turn, and the order changes once. As answers arrive the chance harmful rises, and the circuit stops before the third model and predicts harmful."></figure>
   </div>
 </section>
@@ -185,7 +185,7 @@
     <div class="copy">
       <h2>We call the combination of LLM classifiers a <span class="hl">circuit</span></h2>
       <p class="lede">Combining classifiers is a classic problem in machine learning. Each LLM classifier runs on its own hardware, so we call their combination a circuit.</p>
-      <p>Majority voting, routing and cascades are circuits. They differ in which models they ask, in what order, and how they turn the answers into one prediction.</p>
+      <p>Majority voting, routing and cascades are circuits, and so is LMCircuit, the method of this paper. They differ in which models they ask, in what order, and how they turn the answers into one prediction.</p>
     </div>
     <figure class="fig" data-fig="circuits" aria-label="Four circuits over the same three models: majority voting, routing, a cascade and LMCircuit. A signal travels from the prompt through the models to a prediction, and a scoreboard compares what each circuit spends.">
       <figcaption class="fig-cap" data-role="cap">Illustrative accuracies. Costs are list prices for one million prompts. All four circuits get the three example prompts right. They differ in what they spend.</figcaption>
@@ -193,26 +193,11 @@
   </div>
 </section>
 
-<!-- ============ LMCIRCUIT, FIRST LOOK ============ -->
-<section class="screen" id="lmcircuit" data-title="LMCircuit">
-  <div class="wrap">
-    <div class="single">
-      <h2><span class="hl">LMCircuit</span> learns the best circuit for each prompt</h2>
-      <p class="lede">LMCircuit reads the prompt, then decides which model to ask next and when to stop. It is fitted once from labelled prompts and recorded answers, and works at any budget.</p>
-    </div>
-    <ol class="lmc-steps">
-      <li><span class="n">1</span><h3>Read the prompt</h3><p>A small prompt classifier guesses the label and which models will get it right.</p></li>
-      <li><span class="n">2</span><h3>Ask or stop</h3><p>A dynamic program picks the next model to ask, or stops.</p></li>
-      <li><span class="n">3</span><h3>Predict</h3><p>It answers once one more call is not worth its cost.</p></li>
-    </ol>
-  </div>
-</section>
-
 <!-- ============ ASK OR STOP ============ -->
 <section class="screen" id="steps" data-title="Ask or stop">
   <div class="wrap split">
     <div class="copy">
-      <h2>Every circuit decides whom to ask next and <span class="hl">when to stop</span></h2>
+      <h2>A circuit decides which model to query next and <span class="hl">when to stop</span></h2>
       <p class="lede">After each answer, the circuit either asks another model or stops and predicts. If we care about cost, asking one model at a time loses nothing.<sup class="fnref">1</sup></p>
       <p class="fn"><sup>1</sup> If we care about speed, asking several models in parallel is faster.</p>
     </div>
@@ -268,8 +253,8 @@
 <section class="screen" id="results" data-title="Results">
   <div class="wrap">
     <div class="single">
-      <h2>Higher accuracy at nearly every <span class="hl">budget</span></h2>
-      <p class="lede">LMCircuit is more accurate than every single model and than eight routing and cascading methods at nearly every budget. Here are five of the seven tasks: four judged by open-weight models and one by decision models.</p>
+      <h2>LMCircuit achieves higher accuracy at nearly every <span class="hl">budget</span></h2>
+      <p class="lede">It is more accurate than every single model and than eight routing and cascading methods. Here are five of the seven tasks: four judged by open-weight models and one by decision models.</p>
     </div>
     <figure class="figure fig" data-fig="frontier" id="frontier-fig" aria-label="Balanced accuracy against average cost per item on five tasks, one tab each. Each model is a point; majority voting and eight routing and cascading methods follow; the LMCircuit curve lies above them, with three budget markers.">
       <figcaption class="fig-cap" data-role="cap">Values read from Figure 4 of the paper, which reports balanced accuracy (the average of the accuracy on each class). Bars are 95% confidence intervals. The three markers show how many calls LMCircuit makes per item, and to which models, at a low, a medium and a high budget.</figcaption>
@@ -483,17 +468,17 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
-<script src="./assets/core.js?v=8" defer></script>
-<script src="./assets/fig-cover.js?v=8" defer></script>
-<script src="./assets/fig-uses.js?v=8" defer></script>
-<script src="./assets/fig-noisy.js?v=8" defer></script>
-<script src="./assets/fig-question.js?v=8" defer></script>
-<script src="./assets/fig-circuits.js?v=8" defer></script>
-<script src="./assets/fig-step.js?v=8" defer></script>
-<script src="./assets/fig-dp.js?v=8" defer></script>
-<script src="./assets/fig-router.js?v=8" defer></script>
-<script src="./assets/fig-glue.js?v=8" defer></script>
-<script src="./assets/fig-frontier.js?v=8" defer></script>
+<script src="./assets/core.js?v=9" defer></script>
+<script src="./assets/fig-cover.js?v=9" defer></script>
+<script src="./assets/fig-uses.js?v=9" defer></script>
+<script src="./assets/fig-noisy.js?v=9" defer></script>
+<script src="./assets/fig-question.js?v=9" defer></script>
+<script src="./assets/fig-circuits.js?v=9" defer></script>
+<script src="./assets/fig-step.js?v=9" defer></script>
+<script src="./assets/fig-dp.js?v=9" defer></script>
+<script src="./assets/fig-router.js?v=9" defer></script>
+<script src="./assets/fig-glue.js?v=9" defer></script>
+<script src="./assets/fig-frontier.js?v=9" defer></script>
 <script>
 document.getElementById('yr').textContent = new Date().getFullYear();
 
