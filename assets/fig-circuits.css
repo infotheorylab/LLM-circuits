@@ -39,5 +39,6 @@
 [data-fig="circuits"] .cx-bname { font-size: 15px; fill: var(--ink-2); }
 [data-fig="circuits"] .cx-bnum { font-family: var(--font-mono); font-size: 14px; font-weight: 700; fill: var(--ink); }
 [data-fig="circuits"] .cx-band { fill: transparent; stroke: none; }
+[data-fig="circuits"] .cx-bar { fill: var(--amber); stroke: var(--belief-ink); stroke-width: 1; }
 [data-fig="circuits"] .cx-row.cur .cx-band { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1; }
 [data-fig="circuits"] .cx-row.cur .cx-bname { fill: var(--ink); font-weight: 600; }

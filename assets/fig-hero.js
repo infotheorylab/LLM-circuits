@@ -6,8 +6,8 @@
    agrees with the figures further down the page.
 
    Wide: the prompt on top, the three models in a row, the confidence bar with
-   the coins spent on its left and the answer on its right. Narrow: one column
-   (prompt, models, bar, then coins and answer). It loops while on screen and
+   the money spent on its left and the answer on its right. Narrow: one column
+   (prompt, models, bar, then money spent and answer). It loops while on screen and
    pauses off screen; with reduced motion it shows the hard prompt's last frame.
    The dots under the figure jump to a prompt. */
 (function () {
@@ -75,7 +75,7 @@
         st.push(kit.station(svg, x, sy, m, { w: sw, h: sh }));
         chipAt.push(function () { return [cx, sy + sh + 26]; });
       });
-      // the bar between two readouts: coins spent on the left, the answer on the right
+      // the bar between two readouts: money spent on the left, the answer on the right
       barX = 130; barW = W - 260; barY = sy + sh + 85;
       meterX = 2; meterY = barY - 12;
       ansR = W - 2; ansY = barY - 12;
@@ -108,10 +108,9 @@
     marker.classList.add('hx'); val.classList.add('hx');
     var since = h.label(bar.g, barW / 2, 36, '', 'hero-lbl hx', { 'text-anchor': 'middle' });
 
-    // coins spent so far
+    // money spent so far, in dollars per million tokens
     var meter = kit.costMeter(svg, meterX, meterY);
-    meter.g.children[1].classList.add('hx'); meter.g.children[2].classList.add('hx');
-    if (!narrow) meter.g.children[2].setAttribute('y', 48);   // on the baseline of "safe" and "harmful"
+    meter.g.children[1].classList.add('hx');
 
     // the circuit's answer: an empty slot until it stops
     var ansG = el('g', {}, svg);
@@ -196,17 +195,8 @@
       var cx = ansR - CHIP_W[x] / 2, cy = ansY + 25;
       return pop(kit.chip(ansChip, cx, cy, x), cx, cy);
     }
-    async function dropCoins(k) {
-      meter.add(k);
-      var coins = Array.prototype.slice.call(meter.g.children[1].children, -k);
-      coins.forEach(function (c) { c.style.opacity = 0; });
-      for (var j = 0; j < coins.length; j++) {
-        (function (c) {
-          // a short drop, so the coin never passes over the "spent" label while it is visible
-          h.tween(300, function (t) { c.setAttribute('transform', 'translate(0,' + (-8 * (1 - t)) + ')'); c.style.opacity = t * t; });
-        })(coins[j]);
-        await wait(90);
-      }
+    async function pay(x) {
+      await meter.add(x, ctx.reduce);
       await wait(220);
     }
     function resetTo(name) {
@@ -258,7 +248,7 @@
         if (!ok()) return;
         await showChip(i, s.x);
         await wait(200);
-        await dropCoins(m.coins);
+        await pay(m.price);
         if (!ok()) return;
         ghost.setAttribute('cx', barW * s.q);
         ghost.removeAttribute('visibility');

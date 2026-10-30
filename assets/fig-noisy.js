@@ -1,6 +1,6 @@
 /* fig-noisy: one prompt, four calls, two answers.
 
-   The hard prompt goes to Gemma 4 E4B twice, to the decision model Clef and to
+   The hard prompt goes to Gemma 4 E4B twice, to the decision model Jev and to
    Gemma 4 31B. Each call appears in turn as a row (the model, a wire, its
    answer), then one line sums it up. The answers are illustrative: no recorded
    calls for this prompt are available yet, and the caption says so.
@@ -12,12 +12,13 @@
   'use strict';
   var h = LC.h, kit = LC.kit;
 
-  // a decision model returns only a label; priced like the cheap model
-  var CLEF = { id: 'clef', name: 'Clef', short: 'Clef', tier: 0, coins: 1 };
+  // a decision model returns a label and its probability, no text. TypeSafe's
+  // list price for Jev: $0.042 per million input tokens, output free.
+  var JEV = { id: 'jev', name: 'Jev', short: 'Jev', tier: 1, price: .042 };
   var CALLS = [
     { m: LC.MODELS[0], x: 1 },
-    { m: LC.MODELS[0], x: 0, note: 'second call' },
-    { m: CLEF, x: 0, note: 'decision model' },
+    { m: LC.MODELS[0], x: 0, note: 'again' },
+    { m: JEV, x: 0, note: 'decision model' },
     { m: LC.MODELS[2], x: 1 }
   ];
   var PAD = 1.5;               // keeps the outer strokes inside the viewBox
@@ -57,7 +58,7 @@
       var y = top + i * (ROW_H + ROW_GAP), cy = y + ROW_H / 2;
       var rg = h.svgEl('g', {}, g);
       var st = kit.station(rg, 0, y, c.m, { w: stW, h: ROW_H });
-      if (c.note) h.label(st.g, stW - 12, ROW_H - 10, c.note, 'nz-note', { 'text-anchor': 'end' });
+      if (c.note) h.label(st.g, stW - 12, 22, c.note, 'nz-note', { 'text-anchor': 'end' });
       var wire = wired ? h.svgEl('path', { 'class': 'nz-wire', d: 'M' + wx0 + ',' + cy + ' L' + wx1 + ',' + cy }, g) : null;
       var chipW = c.x ? HARMFUL_W : 64;
       var chip = kit.chip(g, chipL + chipW / 2, cy, c.x);

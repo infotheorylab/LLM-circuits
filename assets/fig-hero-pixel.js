@@ -3,8 +3,8 @@
    Same story as the vector cover: three prompts in turn, each run through the
    circuit that LC.dp.runPrompt picks for it. The prompt card appears, the bar
    shows the prompt classifier's first guess, then each model the circuit asks
-   lights up, answers in a bubble, moves the bar and is paid in coins; at the
-   stop the answer appears with the coins spent.
+   lights up, answers in a bubble, moves the bar and is paid for at its price
+   per million tokens; at the stop the answer appears with the money spent.
 
    The scene is drawn on a <canvas> at a small logical resolution with whole
    rectangles only, then scaled by a whole number, so every pixel stays square.
@@ -18,7 +18,7 @@
 
   /* ------------------------------------------------------------- palette
      16 colours: the page's white, surface, line, muted and ink; each tier
-     colour with one highlight; amber in three shades (coins and the belief);
+     colour with one highlight; amber in three shades (prices and the belief);
      and pale green and red for the ends of the bar and the answer bubbles. */
   var P = {
     white: '#FFFFFF', surf2: '#EDF0F5', line: '#CBD2DD', muted: '#687089', ink: '#17284D',
@@ -100,7 +100,8 @@
     "'": '#|#',
     '-': '...|...|...|###',
     ':': '.|.|#|.|.|.|#',
-    '/': '..#|..#|.#.|.#.|.#.|#..|#..'
+    '/': '..#|..#|.#.|.#.|.#.|#..|#..',
+    '$': '..#..|.####|#.#..|.###.|..#.#|####.|..#..'
   };
   var FONT = {};
   Object.keys(FONT_SRC).forEach(function (ch) {
@@ -148,8 +149,6 @@
 
   /* ---------------------------------------------------------------- sprites */
   var SIZE = [{ w: 30, h: 23 }, { w: 37, h: 29 }, { w: 44, h: 35 }];   // body; feet add 2 rows
-  var COIN5 = ['.ddd.', 'dhhad', 'dhaad', 'daaad', '.ddd.'];
-  var COIN7 = ['..ddd..', '.dhhad.', 'dhhaaad', 'dhaaaad', 'daaaaad', '.daaad.', '..ddd..'];
   // speech-bubble tails, drawn over the bubble's edge: down and to the left, or to the left
   var TAIL_DOWN = ['..#fff#', '.#ff##.', '#f##...', '##.....'];
   var TAIL_LEFT = ['..#f', '.#ff', '#fff', '.#ff', '..#f'];
@@ -161,6 +160,8 @@
     var KEYS = ['easy', 'medium', 'hard'];
     var PR = KEYS.map(function (k) { return { key: k, p: LC.PROMPTS[k], steps: LC.dp.runPrompt(k) }; });
     var MODELS = LC.MODELS;
+    function spentLabel(x) { return LC.h.usd(x) + ' / M tokens'; }
+    var PLATE_W = Math.max.apply(null, MODELS.map(function (m) { return Math.max(textW(m.short), textW(LC.h.usd(m.price))); }));
 
     /* ------------------------------------------------------- DOM: canvas, head */
     fig.querySelectorAll('.hp-stage').forEach(function (n) { n.remove(); });
@@ -223,7 +224,7 @@
     }
 
     /* Wide: the card on top, a wire down to a bus over the three machines, the
-       bar under them, then the answer and the coins spent, both centred on the
+       bar under them, then the answer and the money spent, both centred on the
        trunk. The card is narrow enough that every prompt takes two lines. */
     function layoutWide(W) {
       var L = { W: W, narrow: false }, mid = Math.floor(W / 2);
@@ -237,7 +238,7 @@
       L.m = SIZE.map(function (s, i) {
         var cx = mid + (i - 1) * gap;
         return { cx: cx, x: cx - Math.floor(s.w / 2), y: floor - 2 - s.h, w: s.w, h: s.h,
-          nameY: floor + 5, coinY: floor + 15 };
+          nameY: floor + 5, priceY: floor + 15 };
       });
       // the wire to model i: down the trunk, along the bus, down into the machine
       L.path = L.m.map(function (m) {
@@ -252,7 +253,7 @@
       L.bar.w = L.bar.n * L.bar.pitch - 1 + 4;
       L.bar.x = mid - Math.floor(L.bar.w / 2) + Math.floor((textW('safe') - textW('harmful')) / 2);
       L.bar.y = floor + 40;
-      // the answer ends at the trunk; the coins start just right of it
+      // the answer ends at the trunk; the money spent starts just right of it
       var yr = L.bar.y + 20;
       L.verdict = { right: mid - 6, y: yr };
       L.meter = { x: mid + 8, y: yr + 5 };
@@ -273,7 +274,7 @@
       L.m = SIZE.map(function (s) {
         var m = { x: mx, y: y, w: s.w, h: s.h, cx: mx + Math.floor(s.w / 2) };
         m.mid = y + Math.floor(s.h / 2);
-        m.nameX = nameX; m.nameY = m.mid - 8; m.coinY = m.mid + 2;
+        m.nameX = nameX; m.nameY = m.mid - 8; m.priceY = m.mid + 2;
         y += s.h + 2 + 8;
         return m;
       });
@@ -282,7 +283,7 @@
       L.bubble = function (i, w, h) {
         var m = L.m[i];
         // after the name and price; on the smallest phones, raised beside the name instead
-        if (nameX + 29 + 7 + bw <= W - pad) return { x: nameX + 29 + 7, y: m.mid - Math.floor(h / 2), tail: 'left' };
+        if (nameX + PLATE_W + 7 + bw <= W - pad) return { x: nameX + PLATE_W + 7, y: m.mid - Math.floor(h / 2), tail: 'left' };
         return { x: nameX + textW(MODELS[i].short) + 6, y: m.nameY + 3 - Math.floor(h / 2) - 3, tail: 'left' };
       };
       L.bar = { n: 20 };
@@ -290,8 +291,8 @@
       L.bar.w = L.bar.n * L.bar.pitch - 1 + 4;
       L.bar.x = Math.floor((W - L.bar.w) / 2); L.bar.y = y + 18;
       var yr = L.bar.y + 10 + 4 + CAP + 11;
-      // the answer on the left, the coins on the right; out to the margins if the bar is too short
-      var room = textW('HARMFUL') + 14 + 10 + textW('0 coins') + 6 + 5 * 8 - 1 <= L.bar.w;
+      // the answer on the left, the money spent on the right; out to the margins if the bar is too short
+      var room = textW('HARMFUL') + 14 + 10 + textW(spentLabel(.276)) <= L.bar.w;
       L.verdict = { left: room ? L.bar.x : pad, y: yr };
       L.meter = { right: room ? L.bar.x + L.bar.w : W - pad, y: yr + 5 };
       L.H = yr + 19;
@@ -325,14 +326,12 @@
         if (map[ch]) fill(x + c, y + r, 1, 1, map[ch]);
       }
     }
-    var COIN_ON = { d: P.ambLo, a: P.amb, h: P.ambHi };
-    var COIN_DIM = { d: P.line, a: P.surf2, h: P.white };
 
     /* -------------------------------------------------------------- state */
     var S;
     function reset(pi) {
       S = { p: pi, typed: 0, q: null, focus: null, active: -1, path: [], screen: {}, frame: 0,
-        bubbles: {}, coins: 0, drop: null, verdict: null };
+        bubbles: {}, spent: 0, verdict: null };
     }
     // the final frame of prompt pi, for reduced motion and the jump buttons
     function finalState(pi) {
@@ -342,7 +341,7 @@
       st.forEach(function (s, j) {
         if (s.act === 'stop') { S.q = s.q; S.verdict = s.predict; return; }
         S.focus.push(s.i); S.path.push({ i: s.i, t: 1 }); S.screen[s.i] = 'done';
-        S.bubbles[s.i] = s.x; S.coins += MODELS[s.i].coins;
+        S.bubbles[s.i] = s.x; S.spent += MODELS[s.i].price;
       });
     }
 
@@ -445,12 +444,12 @@
       fill(x + 3, y + h - 4, 6, 1, line);                         // vent
       fill(x + 4, y + h, 4, 2, line); fill(x + w - 8, y + h, 4, 2, line);
       if (lit) brackets(x - 3, y - 3, w + 6, h + 7);
-      // name plate, then the price in coins
-      var name = MODELS[i].short, nc = MODELS[i].coins, cw = nc * 6 - 1;
+      // name plate, then the price per million tokens
+      var name = MODELS[i].short, pr = LC.h.usd(MODELS[i].price);
       var nx = L.narrow ? m.nameX : m.cx - Math.floor(textW(name) / 2);
-      var cx0 = L.narrow ? m.nameX : m.cx - Math.floor(cw / 2);
+      var px0 = L.narrow ? m.nameX : m.cx - Math.floor(textW(pr) / 2);
       text(name, nx, m.nameY, dim ? P.muted : P.ink);
-      for (var c = 0; c < nc; c++) sprite(COIN5, cx0 + c * 6, m.coinY, dim ? COIN_DIM : COIN_ON);
+      text(pr, px0, m.priceY, dim ? P.muted : P.ambLo);
     }
     // selection corners around the model being asked
     function brackets(x, y, w, h) {
@@ -497,15 +496,10 @@
       text(lbl, Math.max(x, Math.min(x + B.w - lw, px - Math.floor(lw / 2))), y - 13, P.ambLo);
     }
 
-    // coins spent: the count, then one coin per coin, each dropping in
+    // money spent so far, in dollars per million tokens
     function drawMeter() {
-      var M = L.meter, n = S.coins, lbl = n === 1 ? '1 coin' : n + ' coins';
-      var x0 = M.x !== undefined ? M.x : M.right - (textW('0 coins') + 6 + 5 * 8 - 1);
-      var end = x0 + textW('0 coins');                          // the count ends here, so the coins never shift
-      text(lbl, end - textW(lbl), M.y, P.ink);
-      var cx = end + 6;
-      for (var c = 0; c < n; c++) sprite(COIN7, cx + c * 8, M.y, COIN_ON);
-      if (S.drop) sprite(COIN7, cx + S.drop.k * 8, M.y - Math.round(9 * (1 - S.drop.t * S.drop.t)), COIN_ON);
+      var M = L.meter, lbl = spentLabel(S.spent);
+      text(lbl, M.x !== undefined ? M.x : M.right - textW(lbl), M.y, P.ink);
     }
 
     // the answer: white on the answer's colour, lit from above like the models
@@ -590,7 +584,7 @@
         var from = S.q, to = steps[s + 1].q;
         await go(Promise.all([
           anim(800, function (t) { S.q = from + (to - from) * t; }, live),
-          dropCoins(MODELS[st.i].coins, live)
+          pay(MODELS[st.i].price, live)
         ]));
         await go(wait(300));
       }
@@ -599,14 +593,10 @@
       S.verdict = steps[steps.length - 1].predict; draw();
       await go(wait(2000));
     }
-    async function dropCoins(nc, live) {
-      var go = guard(live);
-      for (var c = 0; c < nc; c++) {
-        S.drop = { k: S.coins, t: 0 };
-        await go(anim(220, function (t) { S.drop.t = t; }, live));
-        S.drop = null; S.coins++; draw();
-        await go(wait(60));
-      }
+    async function pay(x, live) {
+      var go = guard(live), from = S.spent;
+      await go(anim(600, function (t) { S.spent = from + x * t; }, live));
+      S.spent = from + x; draw();
     }
 
     var aliveNow = null, loopId = 0, jumpTo = null;

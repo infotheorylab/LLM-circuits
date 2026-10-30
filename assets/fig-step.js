@@ -5,18 +5,19 @@
    compares stopping now with asking each model it has not asked yet; one row
    per option shows two numbers, both read from the LC.dp.solve memo:
 
-     coins    the coins the option is expected to spend from this state on: the
-              model's price plus whatever the best circuit asks after it
+     price    what the option is expected to spend from this state on, in
+              dollars per million tokens: the model's price plus whatever the
+              best circuit asks after it
      mistake  the chance that the final prediction is wrong, averaged over the
               model's two possible answers, with the best circuit continuing
               from each child state (memo[child].err weighted by the chance of
               that answer)
 
-   The program takes the option with the lowest LAMBDA * coins + mistake. The
-   figure says "worth" / "not worth" instead of showing the price of a coin.
-   The coins include later calls because the mistake does: next to the model's
-   own price alone, Gemma 4 E4B (1 coin, then Gemma 4 31B) would look like a
-   bargain beside Gemma 4 31B (5 coins) at the same 12%.
+   The program takes the option with the lowest LAMBDA * price + mistake. The
+   figure says "worth" / "not worth" instead of showing LAMBDA. The price
+   includes later calls because the mistake does: next to the model's own price
+   alone, Gemma 4 E4B ($0.02, then Gemma 4 31B) would look like a bargain beside
+   Gemma 4 31B ($0.09) at the same 12%.
 
    Everything stays on screen, so the final frame (reduced motion, ?still)
    shows both decisions. Next skips the pause before the next beat and then
@@ -33,7 +34,6 @@
 
   function child(key, i, x) { return key.substr(0, i) + x + key.substr(i + 1); }
   function pct(e) { return Math.round(e * 100) + '%'; }
-  function coinWord(n) { return n === 1 ? 'a coin' : n + ' coins'; }
 
   /* What the best circuit does after asking model i at `key`, for the row's
      label: null if it always stops, the index of the one model it always asks
@@ -52,14 +52,14 @@
   // the options at one state, in a fixed order: stop, then the models by price
   function options(memo, key) {
     var s = memo[key], q = s.q, out = [];
-    out.push({ act: 'stop', coins: 0, err: LC.belief.error(q), chosen: s.act === 'stop' });
+    out.push({ act: 'stop', cost: 0, err: LC.belief.error(q), chosen: s.act === 'stop' });
     MODELS.forEach(function (m, i) {
       if (key[i] !== '.') return;
       var ph = LC.belief.pHarmful(q, i, P.acc);
       var r1 = memo[child(key, i, 1)], r0 = memo[child(key, i, 0)];
       out.push({
         act: 'ask', i: i, m: m,
-        coins: m.coins + ph * r1.cost + (1 - ph) * r0.cost,
+        cost: m.price + ph * r1.cost + (1 - ph) * r0.cost,
         err: ph * r1.err + (1 - ph) * r0.err,
         then: after(memo, key, i),
         chosen: s.act === 'ask' && s.i === i
@@ -78,12 +78,12 @@
     var stop = s.opts[0], asks = s.opts.slice(1);
     var best = s.opts.filter(function (o) { return o.chosen; })[0];
     if (best.act === 'ask') {
-      return 'Worth ' + coinWord(Math.round(best.coins)) + ': the chance of a mistake falls from ' +
+      return 'Worth ' + h.usd(best.cost) + ': the chance of a mistake falls from ' +
         pct(stop.err) + ' to ' + pct(best.err) + '.';
     }
-    var cheapest = Math.min.apply(null, asks.map(function (o) { return Math.round(o.coins); }));
+    var cheapest = Math.min.apply(null, asks.map(function (o) { return o.cost; }));
     var same = asks.every(function (o) { return pct(o.err) === pct(stop.err); });
-    return 'Not worth ' + coinWord(cheapest) + ': the chance of a mistake ' +
+    return 'Not worth ' + h.usd(cheapest) + ': the chance of a mistake ' +
       (same ? 'stays at ' + pct(stop.err) : 'barely moves') + '.';
   }
 
@@ -107,7 +107,7 @@
     return h.wrap(t, str, hi, lh);
   }
 
-  // set the verdict ("Worth 5 coins:") in bold at the start of the first line
+  // set the verdict ("Worth $0.09:") in bold at the start of the first line
   function lead(t) {
     var first = t.firstChild, str = first.textContent, k = str.indexOf(':') + 1;
     if (k < 1) return;
@@ -163,7 +163,7 @@
     var card = kit.promptCard(g, 0, 0, w, P.text);
     balance(card.text, '“' + P.text + '”', w - 32, 21);   // same line count, so the card's height still fits
 
-    // the belief bar on the left, the coins spent on the right
+    // the belief bar on the left, the money spent on the right
     var barY = card.h + 44;
     var bar = kit.beliefBar(g, 0, barY, w - METER_W - 34);
     var meter = kit.costMeter(g, w - METER_W, barY - 12);
@@ -175,17 +175,17 @@
     function textW(str, cls) { var t = label(probe, 0, 0, str, cls); return t.getComputedTextLength(); }
     // option labels are measured in the chosen row's bold weight, which is the wider one
     function lblW(parts) { return textW(parts.join(', '), 'stp-lbl stp-probe'); }
-    var errX = w - 14, digitW = textW('6', 'stp-num');
+    var errX = w - 14, digitW = textW('$0.000', 'stp-num');
     var longest = Math.max.apply(null, STEPS.map(function (s) {
       return Math.max.apply(null, s.opts.map(function (o) { return lblW(optionText(o, s, true)); }));
     }));
     function columns(head) {
       var cx = errX - Math.max(textW(head, 'stp-col'), textW('46%', 'stp-num')) - 22;
-      return { head: head, coinX: cx, lblMax: cx - digitW - 16 - INSET };
+      return { head: head, costX: cx, lblMax: cx - digitW - 16 - INSET };
     }
     var col = columns('chance of a mistake');
     if (col.lblMax < longest) col = columns('mistake');
-    var coinX = col.coinX, lblMax = col.lblMax, errHead = col.head;
+    var costX = col.costX, lblMax = col.lblMax, errHead = col.head;
 
     var y = barY + 66;
     var blocks = STEPS.map(function (s, si) {
@@ -194,7 +194,7 @@
       b.head = svgEl('g', {}, b.g);
       label(b.head, 0, y + 15, 'At ' + h.pct(s.q) + ' harmful', 'stp-head');
       if (si === 0) {
-        label(b.head, coinX, y + 15, 'coins', 'stp-col', { 'text-anchor': 'end' });
+        label(b.head, costX, y + 15, '$ ' + h.PER, 'stp-col', { 'text-anchor': 'end' });
         label(b.head, errX, y + 15, errHead, 'stp-col', { 'text-anchor': 'end' });
       }
       y += 28;
@@ -218,7 +218,7 @@
         svgEl('tspan', { 'class': 'stp-name' }, t).textContent = name;
         if (then && !two) svgEl('tspan', { 'class': 'stp-then' }, t).textContent = ', ' + then;
         if (two) label(rg, INSET, y + 41, then, 'stp-then stp-lbl');
-        label(rg, coinX, mid, String(Math.round(o.coins)), 'stp-num', { 'text-anchor': 'end' });
+        label(rg, costX, mid, h.usd(o.cost), 'stp-num', { 'text-anchor': 'end' });
         label(rg, errX, mid, pct(o.err), 'stp-num', { 'text-anchor': 'end' });
         b.rows.push({ g: rg, o: o });
         y += rh + ROW_GAP;
@@ -280,11 +280,11 @@
         await fade(b.why, 400, alive);
         if (!b.ans) break;
         if (!await beat(1500)) return;
-        // the answer arrives: coins are paid and the belief moves
+        // the answer arrives: the call is paid for and the belief moves
         var st = b.s.step;
         await fade(b.ans, 300, alive);
         if (!alive()) return;
-        meter.add(MODELS[st.i].coins);
+        meter.add(MODELS[st.i].price);
         // moved frame by frame here, so that a replay mid-move is not overridden
         var from = b.s.q, to = LC.belief.post(b.s.q, st.i, st.x, P.acc);
         await h.tween(650, function (t) { if (alive()) bar.set(from + (to - from) * t, true); });

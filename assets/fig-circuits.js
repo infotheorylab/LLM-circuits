@@ -3,12 +3,12 @@
    A segmented control picks the circuit: majority voting, routing, a cascade
    or LMCircuit. Each draws its own wiring over the three LC.MODELS stations and
    runs the three example prompts (easy, medium, hard) through it. The
-   scoreboard under the drawing keeps each circuit's right answers and coins, so
+   scoreboard under the drawing keeps each circuit's right answers and spend, so
    after the first walk through all four the comparison stays in view.
 
    Every outcome is computed here from LC.PROMPTS, LC.belief and LC.dp; no total
    is typed in. With the illustrative numbers in core.js all four circuits get
-   the three prompts right, for 24, 7, 14 and 6 coins.
+   the three prompts right, for $0.456, $0.13, $0.276 and $0.11 per million tokens.
 
    Layout: the prompt card on top, then an optional control box (the router, or
    LMCircuit's ask-or-stop), then the three stations in a column, each with a
@@ -75,8 +75,8 @@
         return { groups: groups, predict: steps[steps.length - 1].predict };
       } }
   ];
-  var MAX_COINS = 0;           // what asking every model on every prompt costs: the scoreboard's full row
-  M.forEach(function (m) { MAX_COINS += m.coins * ORDER.length; });
+  var MAX_SPEND = 0;           // what asking every model on every prompt costs: the scoreboard's full bar
+  M.forEach(function (m) { MAX_SPEND += m.price * ORDER.length; });
 
   /* An orthogonal path through pts with rounded corners. */
   function route(pts, r) {
@@ -311,51 +311,52 @@
     var rows = scoreboard(board);
     bsvg.setAttribute('viewBox', '0 0 ' + W + ' ' + Math.ceil(rows.height + 2 * PAD));
 
-    /* One row per circuit: name, right answers and a row of coins on one line
-       under a header, or (when the coins would get too small) name and right
-       answers, then the coins. */
+    /* One row per circuit: name, right answers and a bar of the money spent on
+       one line under a header, or (when the bar would get too short) name and
+       right answers, then the bar. */
     function scoreboard(g) {
       var IN = 12, list = [], y0, rowH;
       var nameW = 0;
       CIRCUITS.forEach(function (c) { nameW = Math.max(nameW, measure(g, c.name, 'cx-bname', 'cx-row cur')); });
       var colR = IN + nameW + 24, colC = colR + measure(g, '3 of 3', 'cx-bnum') + 26;
-      var numW = measure(g, String(MAX_COINS), 'cx-bnum');
-      var pitch = Math.min(11, (w - IN - numW - 10 - colC) / MAX_COINS);
-      var one = pitch >= 8.5;
+      var numW = measure(g, h.usd(MAX_SPEND), 'cx-bnum');
+      var barMax = Math.min(264, w - IN - numW - 10 - colC);
+      var one = barMax >= 150;
       if (one) {
         h.label(g, colR, 16, 'right', 'cx-bhead');
-        h.label(g, colC, 16, 'coins spent', 'cx-bhead');
+        h.label(g, colC, 16, 'spent ($ ' + h.PER + ')', 'cx-bhead');
         y0 = 26; rowH = 34;
       } else {
-        numW = measure(g, MAX_COINS + ' coins', 'cx-bnum');
-        pitch = Math.min(11, (w - 2 * IN - numW - 10) / MAX_COINS);
+        numW = measure(g, h.price(MAX_SPEND), 'cx-bnum');
         colC = IN;
+        barMax = Math.min(264, w - 2 * IN - numW - 10);
         y0 = 0; rowH = 56;
       }
-      var r = Math.min(4.5, pitch * .42);
+      function money(x) { return one ? h.usd(x) : h.price(x); }
       CIRCUITS.forEach(function (c, i) {
         var top = y0 + i * rowH;
         var rg = h.svgEl('g', { 'class': 'cx-row' }, g);
         h.svgEl('rect', { 'class': 'cx-band', x: 0, y: top + 2, width: w, height: rowH - 4, rx: 9 }, rg);
         var base = !one ? top + 24 : top + rowH / 2 + 5;
-        var coinY = !one ? top + 42 : top + rowH / 2;
+        var barY = !one ? top + 42 : top + rowH / 2;
         h.label(rg, IN, base, c.name, 'cx-bname');
         var right = !one ? h.label(rg, w - IN, base, '', 'cx-bnum', { 'text-anchor': 'end' })
                            : h.label(rg, colR, base, '', 'cx-bnum');
-        var coins = h.svgEl('g', {}, rg);
-        var num = h.label(rg, colC, !one ? coinY + 5 : base, '', 'cx-bnum');
+        var bar = h.svgEl('rect', { 'class': 'cx-bar', x: colC, y: barY - 5, width: 0, height: 10, rx: 5 }, rg);
+        var num = h.label(rg, colC, !one ? barY + 5 : base, '', 'cx-bnum');
         var n = 0;
         list.push({
-          reset: function () { coins.innerHTML = ''; n = 0; right.textContent = ''; num.textContent = ''; },
+          reset: function () { bar.setAttribute('width', 0); n = 0; right.textContent = ''; num.textContent = ''; },
           add: function (k) {
-            for (var j = 0; j < k; j++) kit.coin(coins, colC + (n + j) * pitch + r, coinY, r);
             n += k;
-            num.setAttribute('x', colC + n * pitch + (n ? 8 : 0));
-            num.textContent = !one ? (n === 1 ? '1 coin' : n + ' coins') : String(n);
+            var bw = barMax * n / MAX_SPEND;
+            bar.setAttribute('width', bw);
+            num.setAttribute('x', colC + bw + (n ? 8 : 0));
+            num.textContent = money(n);
           },
           score: function (k, of) {
             right.textContent = k + ' of ' + of + (!one ? ' right' : '');
-            if (!n) num.textContent = !one ? '0 coins' : '0';
+            if (!n) num.textContent = money(0);
           },
           cur: function (on) { rg.classList.toggle('cur', on); }
         });
@@ -398,7 +399,7 @@
         // a cascade hands the prompt down the chain; the others send it from the left bus
         await Promise.all(grp.map(function (i) { return travel(g > 0 && c.chain ? wires.chain[i] : wires.left[i]); }));
         if (!alive()) return null;
-        grp.forEach(function (i) { stations[i].st.state('on'); row.add(M[i].coins); asked.push(i); });
+        grp.forEach(function (i) { stations[i].st.state('on'); row.add(M[i].price); asked.push(i); });
         await Promise.all(grp.map(function (i) { return stations[i].slot.fill(p.answers[i]); }));
         await h.sleep(200);
       }

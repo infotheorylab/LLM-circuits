@@ -2,7 +2,7 @@
 
    Two prompts, easy and hard, side by side (stacked when the figure is narrow).
    For each, the prompt classifier reads the prompt and gives two things: the
-   chance the response is harmful, and each model's chance of being right on
+   chance the prompt is harmful, and each model's chance of being right on
    this prompt. Below it, the path the circuit then takes. The paths come from
    LC.dp.runPrompt and the comparison from LC.dp.runBlind, so the figure follows
    LC.PROMPTS if those illustrative numbers change.
@@ -28,10 +28,10 @@
     { name: 'hard', title: 'Hard prompt' }
   ];
 
-  function coinsOf(steps) {
-    return steps.reduce(function (c, s) { return c + (s.act === 'ask' ? M[s.i].coins : 0); }, 0);
+  // what a path spends, in dollars per million tokens
+  function spentOf(steps) {
+    return steps.reduce(function (c, s) { return c + (s.act === 'ask' ? M[s.i].price : 0); }, 0);
   }
-  function coinText(n) { return n === 1 ? '1 coin' : n + ' coins'; }
 
   /* Rewrap a card's quote at the narrowest width that keeps its line count,
      so no word is left alone on the last line. The card's height still fits. */
@@ -133,11 +133,11 @@
     }
     var chipCY = chipTop + 14;
     var chip = kit.chip(cg, cx, chipCY, col.steps[col.steps.length - 1].predict);
-    var spent = h.label(cg, cx, chipCY + 14 + 26, 'spent ' + coinText(col.coins), 'rt-spent', { 'text-anchor': 'middle' });
+    var spent = h.label(cg, cx, chipCY + 14 + 26, 'spent ' + h.price(col.spent), 'rt-spent', { 'text-anchor': 'middle' });
     var bottom = chipCY + 14 + 26;
     var blind = null;
     if (stacked) {
-      blind = h.label(cg, cx, bottom + 24, 'Without the prompt classifier: ' + coinText(col.blind), 'rt-blind', { 'text-anchor': 'middle' });
+      blind = h.label(cg, cx, bottom + 24, 'Without the prompt classifier: ' + h.usd(col.blind), 'rt-blind', { 'text-anchor': 'middle' });
       bottom += 24;
     }
     return {
@@ -164,7 +164,7 @@
       var col = {
         p: LC.PROMPTS[pr.name], steps: steps,
         asks: steps.filter(function (s) { return s.act === 'ask'; }),
-        coins: coinsOf(steps), blind: coinsOf(LC.dp.runBlind(pr.name)),
+        spent: spentOf(steps), blind: spentOf(LC.dp.runBlind(pr.name)),
         g: h.svgEl('g', {}, g)
       };
       col.card = kit.promptCard(col.g, 0, 0, cw, col.p.text, { title: pr.title });
@@ -185,7 +185,7 @@
       foot.push(h.svgEl('line', { 'class': 'rt-rule', x1: 0, y1: lineY, x2: w, y2: lineY }, g));
       foot.push(h.label(g, w / 2, lineY + 28, 'Without the prompt classifier', 'rt-blind-k', { 'text-anchor': 'middle' }));
       views.forEach(function (v, k) {
-        foot.push(h.label(g, k * (cw + gap) + v.cx, lineY + 52, 'spent ' + coinText(cols[k].blind), 'rt-blind-v', { 'text-anchor': 'middle' }));
+        foot.push(h.label(g, k * (cw + gap) + v.cx, lineY + 52, 'spent ' + h.price(cols[k].blind), 'rt-blind-v', { 'text-anchor': 'middle' }));
       });
       H = lineY + 52 + 8;
     } else {

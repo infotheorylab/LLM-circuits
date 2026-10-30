@@ -32,10 +32,11 @@
   function child(key, i, x) { return key.substr(0, i) + x + key.substr(i + 1); }
 
   // scan prices from high to low on a geometric grid and keep each new tree
+  // (lam is what $1 per million tokens is worth in chance of a mistake)
   var STOPS = (function () {
     var out = [], last = null;
     for (var k = 0; k <= 160; k++) {
-      var lam = 0.5 * Math.pow(0.002, k / 160);
+      var lam = 25 * Math.pow(0.002, k / 160);
       var memo = LC.dp.solve(PRIOR, lam, ACC), s = shape(memo, ROOT_KEY);
       if (s !== last) { out.push({ lam: lam, memo: memo }); last = s; }
     }
@@ -57,10 +58,6 @@
     return node(ROOT_KEY, 0, null);
   }
   function walk(n, fn) { fn(n); n.kids.forEach(function (k) { walk(k, fn); }); }
-  function coins(c) {
-    var r = Math.abs(c - Math.round(c)) < 0.05 ? String(Math.round(c)) : c.toFixed(1);
-    return r === '1' ? '1 coin' : r + ' coins';
-  }
 
   /* ----------------------------------------------------------- the figure */
 
@@ -74,16 +71,16 @@
     // sizes measured in the page's fonts so that boxes fit their words
     var probe = svgEl('g', { 'class': 'station' }, svg);
     var nameW = Math.max.apply(null, MODELS.map(function (m) { return label(probe, 0, 0, m.name, 'st-name').getComputedTextLength(); }));
-    // the coins row as kit.station draws it: 11 units per coin, then the word
-    var coinW = Math.max.apply(null, MODELS.map(function (m) {
-      return m.coins * 11 + 4 + label(probe, 0, 0, m.coins === 1 ? '1 coin' : m.coins + ' coins', 'st-sub').getComputedTextLength();
+    // the price line as kit.station draws it
+    var priceW = Math.max.apply(null, MODELS.map(function (m) {
+      return label(probe, 0, 0, h.usd(m.price), 'st-sub').getComputedTextLength();
     }));
     var leafProbe = svgEl('g', { 'class': 'dpx-leaf' }, svg);
     var leafTextW = Math.max(label(leafProbe, 0, 0, 'harmful', 'v').getComputedTextLength(),
       label(leafProbe, 0, 0, 'predict', 'p').getComputedTextLength());
     var ansW = WORD.map(function (w) { return label(svg, 0, 0, w, 'dpx-ans').getComputedTextLength(); });
     svg.innerHTML = '';
-    var S = { w: Math.ceil(Math.max(nameW, coinW)) + 34, h: 52 };   // a model to ask
+    var S = { w: Math.ceil(Math.max(nameW, priceW)) + 34, h: 52 };   // a model to ask
     var L = { w: Math.ceil(leafTextW) + 26, h: 52 };      // stop and predict
     var BAR = 30, BAND = 52;                              // parent bottom to bar, parent bottom to child top
 
@@ -173,10 +170,10 @@
         var b = size(n), y = rowY(n.depth);
         var ng = svgEl('g', { 'class': 'dpx-node' }, nodes);
         if (n.r.act === 'ask' && !n.ghost) {
-          var st = LC.kit.station(ng, n.x - b.w / 2, y, MODELS[n.r.i], { w: b.w, h: b.h });
+          var st = LC.kit.station(ng, n.x - b.w / 2, y, MODELS[n.r.i], { w: b.w, h: b.h, unit: false });
           n.light = function () { st.state('on'); };
         } else if (n.ghost) {
-          var gh = LC.kit.station(ng, n.x - b.w / 2, y, MODELS[n.r.i], { w: S.w, h: S.h });
+          var gh = LC.kit.station(ng, n.x - b.w / 2, y, MODELS[n.r.i], { w: S.w, h: S.h, unit: false });
           gh.state('ghost');
           n.light = function () {};
         } else {
@@ -213,8 +210,8 @@
 
       // what this prompt costs on its path
       var spent = 0, leaf = null;
-      walk(root, function (n) { if (n.on && n.r.act === 'ask' && !n.ghost) spent += MODELS[n.r.i].coins; if (n.on && !n.kids.length) leaf = n; });
-      var spentT = label(amber, leaf.x, leaf.bottom + 24, 'spent ' + coins(spent), 'dpx-spent', { 'text-anchor': 'middle' });
+      walk(root, function (n) { if (n.on && n.r.act === 'ask' && !n.ghost) spent += MODELS[n.r.i].price; if (n.on && !n.kids.length) leaf = n; });
+      var spentT = label(amber, leaf.x, leaf.bottom + 24, 'spent ' + h.usd(spent), 'dpx-spent', { 'text-anchor': 'middle' });
       return { g: g, root: root, items: items, path: path, spent: spentT };
     }
 
@@ -319,7 +316,7 @@
         input.value = k;
         input.setAttribute('aria-valuetext', 'price ' + (k + 1) + ' of ' + STOPS.length + ', from high to low');
         err.textContent = LC.h.pct(r.err);
-        cost.textContent = coins(r.cost);
+        cost.textContent = LC.h.price(r.cost);
       }
     };
   }

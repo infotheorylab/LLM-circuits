@@ -13,16 +13,16 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.css" integrity="sha384-WwGtaC6ywCHxA5cstpj/3+xIZvTez8dq2IcBQaXRkenHZ7FVVq1ZROtURwfbtTlG" crossorigin="anonymous" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.js" integrity="sha384-a1WQdjRj162i159OYq041X6I4K8NenkrI09LlPmiHg0YOb7CR+wJOraXwK9abpnE" crossorigin="anonymous"></script>
 
-<link rel="stylesheet" href="./assets/site.css?v=5" />
-<link rel="stylesheet" href="./assets/fig-hero.css?v=5" />
-<link rel="stylesheet" href="./assets/fig-hero-pixel.css?v=5" />
-<link rel="stylesheet" href="./assets/fig-noisy.css?v=5" />
-<link rel="stylesheet" href="./assets/fig-circuits.css?v=5" />
-<link rel="stylesheet" href="./assets/fig-step.css?v=5" />
-<link rel="stylesheet" href="./assets/fig-dp.css?v=5" />
-<link rel="stylesheet" href="./assets/fig-router.css?v=5" />
-<link rel="stylesheet" href="./assets/fig-frontier.css?v=5" />
-<link rel="stylesheet" href="./assets/authors.css?v=5" />
+<link rel="stylesheet" href="./assets/site.css?v=6" />
+<link rel="stylesheet" href="./assets/fig-hero.css?v=6" />
+<link rel="stylesheet" href="./assets/fig-hero-pixel.css?v=6" />
+<link rel="stylesheet" href="./assets/fig-noisy.css?v=6" />
+<link rel="stylesheet" href="./assets/fig-circuits.css?v=6" />
+<link rel="stylesheet" href="./assets/fig-step.css?v=6" />
+<link rel="stylesheet" href="./assets/fig-dp.css?v=6" />
+<link rel="stylesheet" href="./assets/fig-router.css?v=6" />
+<link rel="stylesheet" href="./assets/fig-frontier.css?v=6" />
+<link rel="stylesheet" href="./assets/authors.css?v=6" />
 </head>
 <body>
 
@@ -49,8 +49,8 @@
     </div>
 
     <!-- The cover animation: three prompts, each answered by the circuit it needs. -->
-    <figure class="fig cover-fig" data-fig="hero" aria-label="Three prompts, each answered by the circuit it needs. The easy prompt is answered from the prompt alone, with no model call. The medium prompt is answered after one call to Gemma 4 E4B. The hard prompt goes straight to Gemma 4 31B and skips the two smaller models. A confidence bar shows the chance the prompt is harmful, and a meter counts the coins spent.">
-      <figcaption class="fig-cap">Illustrative numbers. The easy prompt needs no model, the medium one asks Gemma 4 E4B, and the hard one goes straight to Gemma 4 31B.</figcaption>
+    <figure class="fig cover-fig" data-fig="hero" aria-label="Three prompts, each answered by the circuit it needs. The easy prompt is answered from the prompt alone, with no model call. The medium prompt is answered after one call to Gemma 4 E4B. The hard prompt goes straight to Gemma 4 31B and skips the two smaller models. A confidence bar shows the chance the prompt is harmful, and a meter shows the money spent, in dollars per million tokens.">
+      <figcaption class="fig-cap">Illustrative accuracies; real prices per million input tokens. The easy prompt needs no model, the medium one asks Gemma 4 E4B, and the hard one goes straight to Gemma 4 31B.</figcaption>
     </figure>
 
     <!-- Review only: compare the two styles of the cover animation; remove once one is chosen. -->
@@ -124,8 +124,8 @@
       <p class="lede">Ask two models the same question and you can get two answers. Ask the same model twice and you can also get two answers. Every answer costs money.</p>
       <p>So we treat each model, with its prompt and settings, as an instrument: each call is a noisy measurement of the true label, at a price.</p>
     </div>
-    <figure class="fig" data-fig="noisy" aria-label="One prompt is sent four times: twice to Gemma 4 E4B, once to the decision model Clef and once to Gemma 4 31B. Two calls answer harmful and two answer safe.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative answers. Gemma 4 E4B gives two different answers when asked twice, and the decision model Clef and Gemma 4 31B disagree. Prices are in coins per call.</figcaption>
+    <figure class="fig" data-fig="noisy" aria-label="One prompt is sent four times: twice to Gemma 4 E4B, once to the decision model Jev and once to Gemma 4 31B. Two calls answer harmful and two answer safe.">
+      <figcaption class="fig-cap" data-role="cap">Illustrative answers. Gemma 4 E4B gives two different answers when asked twice, and the decision model Jev and Gemma 4 31B disagree. Prices are list prices per million input tokens.</figcaption>
     </figure>
   </div>
 </section>
@@ -145,8 +145,8 @@
       <p class="lede">Combining classifiers is a classic problem in machine learning. Here each classifier is an LLM running on its own hardware, and a circuit connects them. It decides which models to ask, in what order, and how to turn their answers into one prediction.</p>
       <p>Majority voting, routing and cascades are all circuits. We propose <strong>LMCircuit</strong>, which learns the best circuit from data.</p>
     </div>
-    <figure class="fig" data-fig="circuits" aria-label="Four circuits over the same three models: majority voting, routing, a cascade and LMCircuit. A prompt travels through the models to a prediction, and the coins spent are counted.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies and prices, in coins per call. All four circuits get the three example prompts right. They differ in how many coins they spend.</figcaption>
+    <figure class="fig" data-fig="circuits" aria-label="Four circuits over the same three models: majority voting, routing, a cascade and LMCircuit. A prompt travels through the models to a prediction, and the money spent is counted.">
+      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies; real prices per million input tokens. All four circuits get the three example prompts right. They differ in how much they spend.</figcaption>
     </figure>
     <div class="qs">
       <div class="q"><span class="qn">Question 1</span><h3>Which circuit is best for a given budget?</h3><p>Among all ways of connecting the models, which one gives the highest accuracy at a given average cost?</p></div>
@@ -163,8 +163,8 @@
       <p class="lede">After each answer, the circuit either asks another model or stops and predicts. If we care about cost, asking one model at a time loses nothing.<sup class="fnref">1</sup></p>
       <p class="fn"><sup>1</sup> If we care about speed, asking several models in parallel is faster.</p>
     </div>
-    <figure class="fig" data-fig="step" aria-label="The hard prompt, step by step. At 54% harmful, stopping has a 46% chance of a mistake; asking Gemma 4 31B costs 5 coins and lowers it to 12%, so the circuit asks. Gemma 4 31B answers harmful. At 90% harmful, asking another model would cost coins and leave the chance of a mistake at 10%, so the circuit stops and answers harmful.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative numbers. At each step the circuit weighs what each option costs in coins against the chance of a mistake it leaves, and takes the best one.</figcaption>
+    <figure class="fig" data-fig="step" aria-label="The hard prompt, step by step. At 54% harmful, stopping has a 46% chance of a mistake; asking Gemma 4 31B costs $0.09 per million tokens and lowers it to 12%, so the circuit asks. Gemma 4 31B answers harmful. At 90% harmful, asking another model would cost money and leave the chance of a mistake at 10%, so the circuit stops and answers harmful.">
+      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies; real prices per million input tokens. At each step the circuit weighs what each option costs against the chance of a mistake it leaves, and takes the best one.</figcaption>
     </figure>
   </div>
 </section>
@@ -177,7 +177,7 @@
       <p class="lede">For each prompt, the dynamic program weighs the price of one more answer against how much that answer should lower the chance of a mistake. Make queries cheaper and the circuit asks more.</p>
     </div>
     <figure class="fig" data-fig="dp" aria-label="The best circuit drawn as a tree, with a slider for the price per query. When queries are expensive the circuit predicts at once; as they get cheaper it asks the small model first and the large one only after answers that disagree. An amber path shows what it does on the hard prompt.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies and prices, with no prompt classifier yet. Each stop on the slider is a price at which the best tree changes. The amber path is the one the hard prompt takes.</figcaption>
+      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies and real prices, with no prompt classifier yet. Each stop on the slider is a price at which the best tree changes. The amber path is the one the hard prompt takes.</figcaption>
     </figure>
   </div>
 </section>
@@ -190,8 +190,8 @@
       <p class="lede">Prompts differ in difficulty. Some are easy for every model and others split them, so one plan for every prompt wastes money.</p>
       <p>LMCircuit adds a small prompt classifier. It reads the prompt and predicts the label and which models will get it right. It trains in a few minutes and runs on a CPU.</p>
     </div>
-    <figure class="fig" data-fig="router" aria-label="An easy prompt and a hard prompt side by side. The prompt classifier is already sure about the easy one, so the circuit answers with no calls. On the hard one it is unsure, so the circuit asks only Gemma 4 31B, the model most likely to get it right. Without the prompt classifier, the same two prompts cost 3 and 8 coins.">
-      <figcaption class="fig-cap" data-role="cap">Illustrative numbers. On the easy prompt the circuit asks no model. On the hard one it asks only Gemma 4 31B, the model most likely to be right.</figcaption>
+    <figure class="fig" data-fig="router" aria-label="An easy prompt and a hard prompt side by side. The prompt classifier is already sure about the easy one, so the circuit answers with no calls. On the hard one it is unsure, so the circuit asks only Gemma 4 31B, the model most likely to get it right. Without the prompt classifier, the same two prompts cost $0.062 and $0.152 per million tokens.">
+      <figcaption class="fig-cap" data-role="cap">Illustrative accuracies; real prices per million input tokens. On the easy prompt the circuit asks no model. On the hard one it asks only Gemma 4 31B, the model most likely to be right.</figcaption>
     </figure>
   </div>
 </section>
@@ -440,16 +440,16 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
-<script src="./assets/core.js?v=5" defer></script>
-<script src="./assets/fig-hero.js?v=5" defer></script>
-<script src="./assets/fig-hero-pixel.js?v=5" defer></script>
-<script src="./assets/fig-noisy.js?v=5" defer></script>
-<script src="./assets/fig-circuits.js?v=5" defer></script>
-<script src="./assets/fig-step.js?v=5" defer></script>
-<script src="./assets/fig-dp.js?v=5" defer></script>
-<script src="./assets/fig-router.js?v=5" defer></script>
-<script src="./assets/fig-frontier.js?v=5" defer></script>
-<script src="./assets/authors.js?v=5" defer></script>
+<script src="./assets/core.js?v=6" defer></script>
+<script src="./assets/fig-hero.js?v=6" defer></script>
+<script src="./assets/fig-hero-pixel.js?v=6" defer></script>
+<script src="./assets/fig-noisy.js?v=6" defer></script>
+<script src="./assets/fig-circuits.js?v=6" defer></script>
+<script src="./assets/fig-step.js?v=6" defer></script>
+<script src="./assets/fig-dp.js?v=6" defer></script>
+<script src="./assets/fig-router.js?v=6" defer></script>
+<script src="./assets/fig-frontier.js?v=6" defer></script>
+<script src="./assets/authors.js?v=6" defer></script>
 <script>
 document.getElementById('yr').textContent = new Date().getFullYear();
 

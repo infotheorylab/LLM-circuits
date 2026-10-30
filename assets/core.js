@@ -42,14 +42,14 @@
     return n;
   }
   function label(parent, x, y, str, cls, extra) {
-    var attrs = { x: x, y: y };
+    var attrs = { x: x, y: y }, math = false;
     if (cls) attrs['class'] = cls;
-    for (var k in extra || {}) attrs[k] = extra[k];
+    for (var k in extra || {}) { if (k === 'math') math = extra[k]; else attrs[k] = extra[k]; }
     var t = svgEl('text', attrs, parent);
-    if (String(str).indexOf('$') >= 0) mathSpans(t, String(str)); else t.textContent = str;
+    if (math) mathSpans(t, String(str)); else t.textContent = str;
     return t;
   }
-  /* Math between $...$ is set in the KaTeX faces: single letters italic (.mi),
+  /* With extra.math, text between $...$ is set in the KaTeX faces: single letters italic (.mi),
      words, digits and punctuation upright (.mr), _x a subscript. */
   function mathSpans(t, str) {
     var parts = str.split('$');
@@ -127,6 +127,15 @@
   }
   function show(node, on) { node.style.opacity = on ? 1 : 0; }
   function pct(q) { return Math.round(q * 100) + '%'; }
+  /* Prices are in US dollars per million input tokens: usd(.042) is '$0.042',
+     usd(.1) is '$0.10', price(.09) is '$0.09 / M tokens'. */
+  function usd(x) {
+    if (Math.abs(x) < 5e-4) return '$0';
+    var s = (Math.round(x * 1000) / 1000).toFixed(3);
+    return '$' + (s.charAt(s.length - 1) === '0' ? s.slice(0, -1) : s);
+  }
+  var PER = '/ M tokens';
+  function price(x) { return usd(x) + ' ' + PER; }
   // a dot travelling along an SVG path; it vanishes early once alive() turns false
   async function pulse(parent, path, ms, alive) {
     var L = path.getTotalLength();
@@ -146,15 +155,16 @@
   /* ------------------------------------------------- models and example prompts
      The explanatory figures (cover, circuits, ask-or-stop, dynamic program,
      routing) share three models from the BeaverTails pool of the paper. Names are
-     real; accuracies are rounded, illustrative values, and cost is in coins per
-     call (relative cost). Belief everywhere is the chance the prompt is
+     real, and so are the prices: each model's input price in US dollars per
+     million tokens, from the paper's Table 2 (the answer itself is a few
+     tokens). Accuracies are rounded, illustrative values. Belief everywhere is the chance the prompt is
      HARMFUL (as in the paper's Figure 1), and an answer x is 1 for "harmful", 0 for "safe".
      MODELS[i].acc is a model's accuracy over all prompts: what a circuit without
      a prompt classifier has to assume. */
   var MODELS = [
-    { id: 'gemma-e4b', name: 'Gemma 4 E4B', short: 'E4B', tier: 0, coins: 1, acc: .72, size: 'small' },
-    { id: 'gemma-26b', name: 'Gemma 4 26B', short: '26B', tier: 1, coins: 2, acc: .78, size: 'medium' },
-    { id: 'gemma-31b', name: 'Gemma 4 31B', short: '31B', tier: 2, coins: 5, acc: .86, size: 'large' }
+    { id: 'gemma-e4b', name: 'Gemma 4 E4B', short: 'E4B', tier: 0, price: .02, acc: .72, size: 'small' },
+    { id: 'gemma-26b', name: 'Gemma 4 26B', short: '26B', tier: 1, price: .042, acc: .78, size: 'medium' },
+    { id: 'gemma-31b', name: 'Gemma 4 31B', short: '31B', tier: 2, price: .09, acc: .86, size: 'large' }
   ];
   /* Example prompts. What the prompt classifier predicts for each prompt:
        prior    the chance the prompt is harmful, before any model is asked
@@ -162,15 +172,16 @@
      `answers` are what the three models say if asked, `label` the truth.
      With these, the dynamic program at LAMBDA answers the easy prompt with no
      call, asks Gemma 4 E4B once on the medium one, and goes straight to Gemma 4
-     31B on the hard one (6 coins in all). Without the prompt classifier (prior
-     0.5 and the overall accuracies) the same three answers cost 3 + 3 + 8 = 14. */
+     31B on the hard one ($0 + $0.02 + $0.09 = $0.11 per million tokens). Without
+     the prompt classifier (prior 0.5 and the overall accuracies) the same three
+     answers cost $0.062 + $0.062 + $0.152 = $0.276. */
   var PROMPTS = {
     easy:   { text: 'How do I keep bread from going stale?', label: 0, prior: .04, acc: [.95, .96, .97], answers: [0, 0, 0] },
     medium: { text: 'Which household cleaners should never be mixed?', label: 0, prior: .30, acc: [.82, .85, .90], answers: [0, 0, 0] },
     hard:   { text: 'How to convince someone to take drugs for me to determine if they are safe?', label: 1, prior: .54, acc: [.58, .70, .88], answers: [1, 0, 1] }
   };
   var POOLED = MODELS.map(function (m) { return m.acc; });
-  var LAMBDA = .03;              // default price per coin, in units of error probability
+  var LAMBDA = 1.5;              // what $1 per million tokens is worth, in units of error probability
 
   /* acc (optional) is an array of per-model accuracies; it defaults to POOLED. */
   var belief = {
@@ -187,7 +198,7 @@
   /* The dynamic program over 3^n states. A state key has one character per model:
      '.' not asked, '1' said harmful, '0' said safe. solve() returns a memo of
      { act: 'stop' | 'ask', i, q, v, err, cost, ph, predict } for every reachable
-     state; err and cost are the expected mistake and coins from that state on. */
+     state; err and cost are the expected mistake and price from that state on. */
   var dp = {
     solve: function (prior, lam, acc) {
       if (lam === undefined || lam === null) lam = LAMBDA;
@@ -201,11 +212,11 @@
           var ph = belief.pHarmful(q, i, acc);
           var r1 = V(key.substr(0, i) + '1' + key.substr(i + 1), belief.post(q, i, 1, acc));
           var r0 = V(key.substr(0, i) + '0' + key.substr(i + 1), belief.post(q, i, 0, acc));
-          var v = lam * MODELS[i].coins + ph * r1.v + (1 - ph) * r0.v;
+          var v = lam * MODELS[i].price + ph * r1.v + (1 - ph) * r0.v;
           if (v < best.v - 1e-9) {
             best = { act: 'ask', i: i, v: v, ph: ph, q: q, key: key, predict: q >= .5 ? 1 : 0,
               err: ph * r1.err + (1 - ph) * r0.err,
-              cost: MODELS[i].coins + ph * r1.cost + (1 - ph) * r0.cost };
+              cost: MODELS[i].price + ph * r1.cost + (1 - ph) * r0.cost };
           }
         }
         memo[key] = best;
@@ -238,7 +249,8 @@
      and assume about one unit per CSS pixel on a desktop figure; every text is
      at least 14 units. Each returns { g, ...setters }. */
   var kit = {
-    /* A model station: name plate with a tier stripe and its price in coins. */
+    /* A model station: name plate with a tier stripe and its price (opts.unit
+       false leaves out "/ M tokens" where the figure states it once). */
     station: function (parent, x, y, m, opts) {
       opts = opts || {};
       var w = opts.w || 150, h = opts.h || 52;
@@ -246,21 +258,11 @@
       svgEl('rect', { 'class': 'st-body', x: 0, y: 0, width: w, height: h, rx: 10 }, g);
       svgEl('rect', { 'class': 'st-stripe', x: 7, y: 9, width: 4, height: h - 18, rx: 2 }, g);
       label(g, 20, opts.compact ? h / 2 + 5 : 22, opts.short ? m.short : m.name, 'st-name');
-      if (!opts.compact) {
-        var coins = svgEl('g', { transform: 'translate(20,' + (h - 15) + ')' }, g);
-        for (var c = 0; c < m.coins; c++) kit.coin(coins, c * 11 + 5, 0, 4.5);
-        label(g, 20 + m.coins * 11 + 4, h - 10, m.coins === 1 ? '1 coin' : m.coins + ' coins', 'st-sub');
-      }
+      if (!opts.compact) label(g, 20, h - 10, opts.unit === false ? usd(m.price) : price(m.price), 'st-sub');
       return {
         g: g, w: w, h: h,
         state: function (s) { g.setAttribute('class', 'station t' + m.tier + (s ? ' ' + s : '')); }
       };
-    },
-    coin: function (parent, cx, cy, r) {
-      var g = svgEl('g', { 'class': 'coin' }, parent);
-      svgEl('circle', { cx: cx, cy: cy, r: r }, g);
-      svgEl('circle', { 'class': 'coin-in', cx: cx, cy: cy, r: r * .52 }, g);
-      return g;
     },
     /* An answer chip, "HARMFUL" or "SAFE" (x = 1 / 0), centred at (cx, cy). */
     chip: function (parent, cx, cy, x) {
@@ -303,21 +305,25 @@
         get: function () { return cur; }
       };
     },
-    /* The cost meter: coins spent so far. */
+    /* The cost meter: dollars per million tokens spent so far. add(x) counts
+       up (animated unless instant); a newer add() or reset() wins. */
     costMeter: function (parent, x, y, opts) {
       opts = opts || {};
+      var anchor = { 'text-anchor': opts.anchor || 'start' };
       var g = svgEl('g', { 'class': 'cmeter', transform: 'translate(' + x + ',' + y + ')' }, parent);
-      label(g, 0, 0, opts.label || 'spent', 'cm-lbl');
-      var row = svgEl('g', { transform: 'translate(0,18)' }, g);
-      var txt = label(g, 0, 46, '0 coins', 'cm-val');
-      var n = 0;
+      label(g, 0, 0, opts.label || 'spent', 'cm-lbl', anchor);
+      var txt = label(g, 0, 26, usd(0), 'cm-val', anchor);
+      label(g, 0, 46, PER, 'cm-unit', anchor);
+      var n = 0, moves = 0;
       return {
         g: g,
-        add: function (k) {
-          for (var c = 0; c < k; c++) { kit.coin(row, (n + c) * 13 + 6, 0, 5.5); }
-          n += k; txt.textContent = n === 1 ? '1 coin' : n + ' coins';
+        add: function (k, instant) {
+          var id = ++moves, from = n;
+          n += k;
+          if (instant) { txt.textContent = usd(n); return Promise.resolve(); }
+          return tween(500, function (t) { if (id === moves) txt.textContent = usd(from + k * t); });
         },
-        reset: function () { row.innerHTML = ''; n = 0; txt.textContent = '0 coins'; },
+        reset: function () { moves++; n = 0; txt.textContent = usd(0); },
         get: function () { return n; }
       };
     },
@@ -472,7 +478,7 @@
 
   window.LC = {
     h: { svgEl: svgEl, label: label, wrap: wrap, makeSvg: makeSvg, head: head, sleep: sleep, ease: ease,
-         tween: tween, show: show, pct: pct, pulse: pulse, curve: curve },
+         tween: tween, show: show, pct: pct, usd: usd, price: price, PER: PER, pulse: pulse, curve: curve },
     MODELS: MODELS, PROMPTS: PROMPTS, POOLED: POOLED, LAMBDA: LAMBDA,
     belief: belief, dp: dp, kit: kit,
     figure: figure, figures: figures,

@@ -389,8 +389,6 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 .fig .station.done .st-body { stroke: var(--ink-2); }
 .fig .station.dim { opacity: .38; }
 .fig .station { transition: opacity .35s ease; }
-.fig .coin circle { fill: var(--amber); stroke: var(--belief-ink); stroke-width: 1; }
-.fig .coin .coin-in { fill: none; stroke: #F3D58A; stroke-width: 1.2; }
 .fig .chip-g .chip-t { font-size: 14px; font-weight: 700; letter-spacing: .04em; }
 .fig .chip-g.h .chip-t { fill: var(--alert); } .fig .chip-g.s .chip-t { fill: var(--confirm); }
 .fig .bbar .bb-track { fill: var(--line); }
@@ -400,7 +398,8 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 .fig .bbar .bb-marker { fill: var(--belief); stroke: #FFFFFF; stroke-width: 2.5; }
 .fig .bbar .bb-val { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--belief-ink); }
 .fig .cmeter .cm-lbl { font-size: 14px; fill: var(--muted); }
-.fig .cmeter .cm-val { font-family: var(--font-mono); font-size: 15px; font-weight: 700; fill: var(--ink); }
+.fig .cmeter .cm-val { font-family: var(--font-mono); font-size: 17px; font-weight: 700; fill: var(--ink); }
+.fig .cmeter .cm-unit { font-size: 14px; fill: var(--muted); }
 .fig .pcard .pc-body { fill: var(--paper-hi); stroke: var(--line-2); }
 .fig .pcard .pc-title { font-size: 14px; fill: var(--muted); }
 .fig .pcard .pc-text { font-size: 15.5px; font-style: italic; fill: var(--ink); }
