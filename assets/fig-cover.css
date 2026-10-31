@@ -24,7 +24,7 @@
 .circuit-readouts > div { display: flex; align-items: baseline; white-space: nowrap; }
 .circuit-readouts .readout-label { font: 600 16px/24px var(--font-display); color: var(--ink-2); }
 .circuit-readouts strong { font: 800 17px/24px var(--font-display); font-variant-numeric: tabular-nums; color: var(--ink); }
-#cover-diagram { display: block; width: 872px; min-width: 872px; height: 392.4px; overflow: visible; }
+#cover-diagram { display: block; width: 872px; min-width: 872px; height: 359.7px; overflow: visible; }
 
 /* the source row inside the board, used when the prompt and classifier do not fit on the left */
 .cover-src-row { display: none; align-items: center; justify-content: center; gap: 10px; margin: 0 0 14px; font: 700 15px/1.4 var(--font-display); color: var(--ink); }

@@ -214,6 +214,14 @@
       h.svgEl('circle', { 'class': 'gl-radio', cx: setX + 23, cy: oy - 5, r: 7 }, og);
       h.svgEl('circle', { 'class': 'gl-dot', cx: setX + 23, cy: oy - 5, r: 3.5 }, og);
       h.label(og, setX + 38, oy, s.name);
+      // each setting is a button: picking it reruns the dynamic program for that setting
+      og.setAttribute('role', 'button');
+      og.setAttribute('tabindex', '0');
+      og.setAttribute('aria-label', s.name);
+      og.addEventListener('click', function () { choose(k); });
+      og.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(k); }
+      });
       return og;
     });
     function pick(k) { opts.forEach(function (o, j) { o.classList.toggle('on', j === k); }); }
@@ -320,7 +328,21 @@
       await fade(c.pred, true, alive);
     }
 
-    return async function play(alive) {
+    // a setting picked by hand: panel 1 stands fitted, and only the dynamic program reruns
+    var token = 0;
+    function choose(k) {
+      var mine = ++token;
+      var alive = function () { return mine === token && svg.isConnected; };
+      reset();
+      net1.g.classList.remove('idle'); net2.g.classList.remove('idle');
+      bars.forEach(function (b) { b(1); });
+      pick(k);
+      circuit(k, alive);
+    }
+
+    return async function play(run) {
+      var mine = ++token;
+      var alive = function () { return run() && mine === token; };
       reset();
       await h.sleep(300); if (!alive()) return;
       p1.a.live(true); p1.b.live(true);

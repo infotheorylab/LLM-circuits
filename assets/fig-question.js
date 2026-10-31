@@ -2,12 +2,11 @@
 
    A prompt faces a pool of six models from the paper's pools. The drawing
    follows the two questions above it and highlights each in turn:
-     1  Which LLMs should we ask,     the signal tries a few models and picks one;
-        and in what order?            then three models are asked in turn, numbered
-                                      1, 2, 3, and the order is shuffled once
-     2  When should we stop?          answers arrive in the new order, the chance
-                                      harmful fills, and the circuit stops before
-                                      the third model and predicts
+     1  Which LLMs should we ask,     the signal hesitates over a few models, then
+        and in what order?            asks one at a time: each is numbered, answers,
+                                      and the chance harmful moves with the answer
+     2  When should we stop?          after two answers the circuit stops, the
+                                      models it did not ask fade, and it predicts
    It loops while on screen and starts again from question 1 after a pause off
    screen. With reduced motion (or ?still, ?qa) the questions stay in full ink
    and the drawing shows the last frame: the numbered path, two answers and
@@ -32,12 +31,10 @@
     { name: 'Qwen3 4B', tier: 0 },
     { name: 'Qwen3 32B', tier: 2 },
     { name: 'Jev', tier: 1 }];
-  var TRY = [4, 1, 3];          // question 1: the models the signal tries,
+  var TRY = [4, 1, 3];          // question 1: the models the signal hesitates over,
   var TRY_MS = [560, 470, 620]; //   and how long it stays on each,
-  var PICK = 0;                 //   before it picks Gemma 4 E4B
-  var PLAN = [0, 5, 2];         //   then asked in this order (E4B, Jev, 31B),
-  var SHUFFLE = [2, 0, 5];      //   then in this one (31B, E4B, Jev)
-  var ASKED = 2;                // question 2: two answers, then it stops before the third
+  var ORDER = [2, 0];           //   then the models it asks, in turn (31B, E4B)
+  var ASKED = ORDER.length;     // question 2: after these answers it stops
   var SAYS = 1;                 // both say harmful (only Gemma models answer, so LC.belief has their accuracy)
   var CHIP_W = 92;              // kit.chip width of HARMFUL
   var R = 11;                   // a number badge's radius
@@ -173,7 +170,7 @@
     if (side) el('circle', { 'class': 'q-j', cx: J.x, cy: J.y, r: 4 }, g);
 
     // the answers that reach the prediction (built once: the story is the same every loop)
-    var outs = SHUFFLE.slice(0, ASKED).map(function (k) {
+    var outs = ORDER.slice(0, ASKED).map(function (k) {
       var p = el('path', { 'class': 'cw q-x', d: outPath(rows[k].cy, SAYS ? CHIP_W : 64) }, outG);
       p.style.opacity = 0;
       return p;
@@ -212,7 +209,7 @@
     // what the circuit believes after the answers of the first j models in the new order
     function beliefAfter(j) {
       var q = .5;
-      for (var i = 0; i < j; i++) q = LC.belief.post(q, SHUFFLE[i], SAYS);
+      for (var i = 0; i < j; i++) q = LC.belief.post(q, ORDER[i], SAYS);
       return q;
     }
     // a badge keeps its number while it fades out (popBadge sets the next one)
@@ -229,7 +226,7 @@
       reset();
       setQ(0);
       rows.forEach(function (b, k) {
-        var j = SHUFFLE.indexOf(k);
+        var j = ORDER.indexOf(k);
         if (j < 0 || j >= ASKED) { block(k, 'dim'); wire(k, 'off'); return; }
         b.num.textContent = j + 1;
         badgeAt(k, 1);
@@ -250,7 +247,6 @@
       rows[k].num.textContent = num;
       return h.tween(300, function (t) { if (ok()) badgeAt(k, t); });
     }
-    function dropBadge(k, ok) { return h.tween(240, function (t) { if (ok()) badgeAt(k, 1 - t); }); }
     // the signal runs along a model's wire; the model lights up once it arrives
     async function send(k, ms, ok) {
       wire(k, 'live');
@@ -265,8 +261,9 @@
        replaced or the figure leaves the screen; the pass then stops early. */
     async function once(ok) {
       var j, k;
-      // 1. Which LLMs should we ask, and in what order? The signal tries a
-      // few and picks one; then three in turn, then a new order.
+      // 1. Which LLMs should we ask, and in what order? The signal hesitates
+      // over a few models; then it asks one at a time, and each answer moves
+      // the chance harmful before the next model is chosen.
       setQ(1);
       if (!await wait(900, ok)) return false;
       trunkState('live');
@@ -277,56 +274,27 @@
         wire(k, ''); block(k, '');
         if (!await wait(150, ok)) return false;
       }
-      if (!await send(PICK, 650, ok) || !await wait(1300, ok)) return false;
-
       if (!await wait(300, ok)) return false;
-      for (j = 0; j < PLAN.length; j++) {
-        k = PLAN[j];
-        if (j) { settle(PLAN[j - 1]); if (!await send(k, 550, ok)) return false; }
-        await popBadge(k, j + 1, ok);
-        if (!await wait(650, ok)) return false;
-      }
-      settle(PLAN[PLAN.length - 1]);
-      if (!await wait(900, ok)) return false;
-      await Promise.all(PLAN.map(function (i) { return dropBadge(i, ok); }));
-      if (!await wait(350, ok)) return false;
-      for (j = 0; j < SHUFFLE.length; j++) {
-        k = SHUFFLE[j];
-        wire(k, 'live'); block(k, 'active');
-        await popBadge(k, j + 1, ok);
-        if (!await wait(420, ok)) return false;
-        settle(k);
-        if (!await wait(130, ok)) return false;
-      }
-      if (!await wait(1000, ok)) return false;
-
-      // 2. When should we stop? Answers arrive and the bar fills; the circuit
-      // leans toward the third model, then stops and predicts. The numbers stay
-      // as the plan; the wires light again only as each model is really asked.
-      setQ(2);
-      SHUFFLE.forEach(function (i) { wire(i, ''); });
-      if (!await wait(600, ok)) return false;
       for (j = 0; j < ASKED; j++) {
-        k = SHUFFLE[j];
-        if (!await send(k, 550, ok) || !await wait(350, ok)) return false;
+        k = ORDER[j];
+        if (!await send(k, 600, ok)) return false;
+        await popBadge(k, j + 1, ok);
+        if (!await wait(450, ok)) return false;
         var c = addChip(k);
         chipAt(c, 0);
         await h.tween(280, function (t) { if (ok()) chipAt(c, t); });
         await meter.set(beliefAfter(j + 1), 700);
         if (!ok()) return false;
         settle(k);
-        if (!await wait(550, ok)) return false;
+        if (!await wait(700, ok)) return false;
       }
-      k = SHUFFLE[ASKED];
-      wire(k, 'live'); block(k, 'active');
-      if (!await wait(850, ok)) return false;
-      wire(k, ''); block(k, '');
-      await dropBadge(k, ok);
-      if (!await wait(250, ok)) return false;
+
+      // 2. When should we stop? Sure enough after two answers: the models it
+      // did not ask fade and the answers join in the prediction.
+      setQ(2);
+      if (!await wait(900, ok)) return false;
       rows.forEach(function (b, i) {
-        var used = SHUFFLE.indexOf(i);
-        if (used < 0 || used >= ASKED) { block(i, 'dim'); wire(i, 'off'); }
-        else wire(i, 'live');
+        if (ORDER.indexOf(i) < 0) { block(i, 'dim'); wire(i, 'off'); }
       });
       outs.forEach(function (p) { p.setAttribute('class', 'cw q-x live'); });
       await h.tween(400, function (t) { if (ok()) outs.forEach(function (p) { p.style.opacity = t; }); });

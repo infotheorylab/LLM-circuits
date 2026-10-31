@@ -43,7 +43,7 @@
      and the long run down the narrow layout's bus is not. Each answered prompt
      stays on screen for T.prompt before the next one fades in. */
   var T = { swap: 300, hub: 350, ask: 350, pred: 350, beat: 450, prompt: 1300, circuit: 1600 };
-  var SPEED = .5, WIRE_MIN = 280, WIRE_MAX = 700;
+  var SPEED = .25, WIRE_MIN = 560, WIRE_MAX = 1400;   // the moving dot: units per ms, and its shortest and longest trip
 
   function majority(xs) {
     var s = 0;
@@ -227,6 +227,14 @@
     var sy = oneLine ? 24 : 46, sx = oneLine ? w - 16 - stepsW : 16;
     var steps = ORDER.map(function (k, i) {
       var t = h.label(card, sx, sy, TITLE[k], 'cx-pk');
+      // each prompt is a button: it runs the circuit on view on that prompt
+      t.setAttribute('role', 'button');
+      t.setAttribute('tabindex', '0');
+      t.setAttribute('aria-label', 'Run on the ' + TITLE[k].toLowerCase() + ' prompt');
+      t.addEventListener('click', function () { tryPrompt(k); });
+      t.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tryPrompt(k); }
+      });
       sx += stepW[i] + STEP;
       return t;
     });
@@ -552,6 +560,7 @@
       Wr.lit.forEach(function (n, k) { hubOn(k, false); });
       stations.forEach(function (s) { s.st.state(''); s.slot.clear(); });
       predV.textContent = '';
+      predV.style.opacity = 0;     // it fades in when the new prediction is set
       badges.forEach(function (b) { setVisible(b, false); b.style.opacity = ''; });
     }
     // the answers and the prediction of the prompt just answered fade out with it
@@ -560,7 +569,9 @@
       predV.style.opacity = 1 - t;
       badges.forEach(function (b) { b.style.opacity = 1 - t; });
     }
+    var shown = 0;               // the circuit on view
     function select(i) {
+      shown = i;
       tabs.forEach(function (b, j) {
         b.setAttribute('aria-checked', j === i ? 'true' : 'false');
         b.tabIndex = j === i ? 0 : -1;
@@ -578,12 +589,14 @@
 
     /* One prompt through circuit c. Returns whether it was right, or null when
        the run was cut short (every await is followed by a check of alive). */
-    async function runPrompt(c, k, alive) {
+    async function runPrompt(c, k, alive, now) {
       var p = P[k], tr = c.trace(k), asked = [];
       async function go(promise) { await promise; return alive(); }
       if (!await go(hold())) return null;
-      // a new prompt fades in; the one already on the card stays put
-      var swap = cardK !== k;
+      // a new prompt fades in; the one already on the card stays put.
+      // A prompt picked on the card (now) starts at once, with no fade or pause.
+      var swap = cardK !== k && !now;
+      if (now) allWires().forEach(function (wo) { wo.live(false); });
       if (swap) allWires().forEach(function (wo) { wo.live(false); });
       if (swap && !await go(h.tween(T.swap, function (t) { if (alive()) { cText.style.opacity = 1 - t; fadeOld(t); } }))) return null;
       resetPrompt();
@@ -591,7 +604,7 @@
       if (swap) cText.style.opacity = 0;
       readReset(c, tr.q ? tr.q[0] : null);
       if (swap && !await go(h.tween(T.swap, function (t) { if (alive()) cText.style.opacity = t; }))) return null;
-      if (!await go(h.sleep(T.beat))) return null;
+      if (!now && !await go(h.sleep(T.beat))) return null;
       // into the circuit: to the router, or through the prompt classifier to ask or stop
       for (var e = 0; e < Wr.entry.length; e++) {
         if (!await go(hold()) || !await go(send(Wr.entry[e], alive))) return null;
@@ -617,7 +630,7 @@
       if (!await go(hold()) || !await go(Promise.all(outs.map(function (wo) { return send(wo, alive); })))) return null;
       var ok = tr.predict === p.label;
       predV.textContent = tr.predict ? 'HARMFUL' : 'SAFE';
-      if (!await go(h.tween(T.pred, function (t) { fadeIn(predV, t); }))) return null;
+      if (!await go(h.tween(T.pred, function (t) { if (alive()) fadeIn(predV, t); }))) return null;
       setVisible(badges[ok ? 1 : 0], true);
       // what the circuit did not use steps back; a model it did not ask has no answer to send on
       stations.forEach(function (s, i) {
@@ -652,6 +665,17 @@
       // the circuit whose walk this cuts short shows its complete result, not a part of it
       if (running >= 0 && running !== i) rows[running].show(false);
       runCircuit(i, function () { return mine === token && svg.isConnected; });
+    }
+
+    // a prompt on the card runs the circuit on view on that prompt alone
+    function tryPrompt(k) {
+      var mine = ++token;
+      picked = true;
+      if (running >= 0) { rows[running].show(false); running = -1; }
+      var alive = function () { return mine === token && svg.isConnected; };
+      var i = shown;
+      select(i);
+      runPrompt(CIRCUITS[i], k, alive, true);
     }
 
     select(0);

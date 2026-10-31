@@ -15,16 +15,17 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.19.1/katex.min.js" integrity="sha384-a1WQdjRj162i159OYq041X6I4K8NenkrI09LlPmiHg0YOb7CR+wJOraXwK9abpnE" crossorigin="anonymous"></script>
 
 <link rel="stylesheet" href="./assets/site.css?v=9" />
-<link rel="stylesheet" href="./assets/fig-cover.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-cover.css?v=10" />
 <link rel="stylesheet" href="./assets/fig-uses.css?v=9" />
 <link rel="stylesheet" href="./assets/fig-noisy.css?v=9" />
 <link rel="stylesheet" href="./assets/fig-question.css?v=9" />
-<link rel="stylesheet" href="./assets/fig-circuits.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-circuits.css?v=11" />
 <link rel="stylesheet" href="./assets/fig-step.css?v=9" />
 <link rel="stylesheet" href="./assets/fig-dp.css?v=9" />
 <link rel="stylesheet" href="./assets/fig-router.css?v=9" />
-<link rel="stylesheet" href="./assets/fig-glue.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-glue.css?v=10" />
 <link rel="stylesheet" href="./assets/fig-frontier.css?v=9" />
+<link rel="stylesheet" href="./assets/fig-calibration.css?v=1" />
 <link rel="stylesheet" href="./assets/authors.css?v=9" />
 </head>
 <body>
@@ -74,7 +75,7 @@
               <div><span class="readout-label">Queries=</span><strong id="cover-calls">0</strong></div>
               <div><span class="readout-label">Cost per 1M prompts=</span><strong id="cover-cost">$0</strong></div>
             </div>
-            <svg id="cover-diagram" viewBox="0 0 800 360" aria-hidden="true">
+            <svg id="cover-diagram" viewBox="0 0 800 330" aria-hidden="true">
               <defs><marker id="circuit-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path class="cw-head" d="M0,0 L10,5 L0,10 Z"/></marker></defs>
               <path class="cw" id="cover-prompt-wire" d="M0,172 H48"/>
               <path class="cw" id="cw0" d="M48,172 H84" marker-end="url(#circuit-arrow)"/>
@@ -240,7 +241,7 @@
   <div class="wrap split fig-wide">
     <div class="copy">
       <h2><span class="hl">LMCircuit</span> is a prompt classifier and a dynamic program</h2>
-      <p class="lede">We fit the prompt classifier once. For any setting, from prioritize cost to prioritize accuracy, the dynamic program turns its estimates into a circuit.</p>
+      <p class="lede">We fit the prompt classifier once. For any setting, from prioritize cost to prioritize accuracy, the dynamic program turns its estimates into a circuit. LMCircuit offers continuous control over how to weigh accuracy vs. cost, tracing the entire frontier.</p>
       <p>The prompt classifier reads a text embedding of the prompt (Qwen3-Embedding-0.6B) and the answers collected so far. It returns the chance the prompt is harmful and the chance each model gets it right. It is trained on labelled prompts and recorded model answers. <button class="linkish" data-open="sheet-method">Technical details</button></p>
     </div>
     <figure class="fig" data-fig="glue" aria-label="Two panels. Fit once: the prompt and the answers so far (none yet) go into the prompt classifier, which returns a 54% chance that the prompt is harmful and a 58%, 70% and 88% chance that Gemma 4 E4B, Gemma 4 26B and Gemma 4 31B get it right. Pick a setting, get a circuit: the prompt classifier and a setting go into the dynamic program, which returns a circuit for the prompt. Set to prioritize cost, the circuit asks no model and predicts harmful with a 54% chance, for $0 per 1M prompts. Set to prioritize accuracy, it asks Gemma 4 31B, which says harmful, and predicts harmful with a 90% chance, for $90 per 1M prompts.">
@@ -271,6 +272,19 @@
         <img src="./img/runtime.png?v=2" alt="Time to construct each method on the seven tasks. LMCircuit fits in 10 seconds to 3 minutes; FrugalGPT and Cascade Routing take 2 to 7 hours." loading="lazy"/>
       </figure>
     </details>
+  </div>
+</section>
+
+<!-- ============ CALIBRATION ============ -->
+<section class="screen" id="calibration" data-title="Calibration">
+  <div class="wrap">
+    <div class="single">
+      <h2>LMCircuit's decisions are <span class="hl">calibrated</span></h2>
+      <p class="lede">When LMCircuit is 70% sure of a label, it is right about 70% of the time.</p>
+    </div>
+    <figure class="figure fig" data-fig="calib" id="calibration-fig" aria-label="Reliability diagrams on five tasks, one tab each. Prompts are grouped by predicted probability; LMCircuit's points lie on the diagonal, majority voting's far from it. Beside the chart, each method's calibration error.">
+      <figcaption class="fig-cap" data-role="cap">LMCircuit returns a belief: the probability that the label is 1. We group held-out prompts into ten bins by that belief, and each point compares a bin's average belief with how often its label is truly 1. Calibration error is the average distance from the diagonal, weighted by the number of prompts in each bin. LMCircuit is shown at a budget of 0.1; its calibration error is about the same at every budget from 0.01 to 1.</figcaption>
+    </figure>
   </div>
 </section>
 
@@ -359,7 +373,7 @@
 <footer>
   <div class="wrap">
     <span>&copy; <span id="yr">2026</span> Information Theory Lab, Harvard</span>
-    <span><a href="https://arxiv.org/abs/2610.30076">arXiv:2610.30076</a> &middot; 2026 &middot; <a href="https://github.com/hskhalaf/lmcircuit">code</a></span>
+    <span><a href="https://arxiv.org/abs/2610.30076">arXiv</a> &middot; <a href="https://github.com/hskhalaf/lmcircuit">Code</a></span>
   </div>
 </footer>
 
@@ -472,13 +486,14 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="./assets/fig-cover.js?v=9" defer></script>
 <script src="./assets/fig-uses.js?v=9" defer></script>
 <script src="./assets/fig-noisy.js?v=9" defer></script>
-<script src="./assets/fig-question.js?v=9" defer></script>
-<script src="./assets/fig-circuits.js?v=9" defer></script>
+<script src="./assets/fig-question.js?v=10" defer></script>
+<script src="./assets/fig-circuits.js?v=13" defer></script>
 <script src="./assets/fig-step.js?v=9" defer></script>
 <script src="./assets/fig-dp.js?v=9" defer></script>
 <script src="./assets/fig-router.js?v=9" defer></script>
-<script src="./assets/fig-glue.js?v=9" defer></script>
+<script src="./assets/fig-glue.js?v=10" defer></script>
 <script src="./assets/fig-frontier.js?v=9" defer></script>
+<script src="./assets/fig-calibration.js?v=1" defer></script>
 <script>
 document.getElementById('yr').textContent = new Date().getFullYear();
 

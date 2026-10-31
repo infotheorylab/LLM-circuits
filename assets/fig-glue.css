@@ -36,6 +36,9 @@
 /* the setting and the dynamic program */
 [data-fig="glue"] .gl-opt text { font-size: 14px; fill: var(--ink-2); }
 [data-fig="glue"] .gl-opt.on text { font-weight: 700; fill: var(--ink); }
+[data-fig="glue"] .gl-opt { cursor: pointer; }
+[data-fig="glue"] .gl-opt:hover text { fill: var(--ink); }
+[data-fig="glue"] .gl-opt:focus { outline: none; }
 [data-fig="glue"] .gl-radio { fill: var(--paper-hi); stroke: var(--line-2); stroke-width: 1.6; transition: stroke .3s ease; }
 [data-fig="glue"] .gl-opt.on .gl-radio { stroke: var(--navy); }
 [data-fig="glue"] .gl-dot { fill: var(--navy); opacity: 0; transition: opacity .3s ease; }

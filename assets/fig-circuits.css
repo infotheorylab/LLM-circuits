@@ -28,6 +28,9 @@
 /* the drawing */
 [data-fig="circuits"] .cx-pk { font-size: 14px; fill: var(--muted); }
 [data-fig="circuits"] .cx-pk.on { fill: var(--ink); font-weight: 600; }
+[data-fig="circuits"] .cx-pk { cursor: pointer; pointer-events: bounding-box; }
+[data-fig="circuits"] .cx-pk:hover { fill: var(--ink); }
+[data-fig="circuits"] .cx-pk:focus { outline: none; }
 [data-fig="circuits"] .pulse { fill: var(--wire-live); }
 /* a model the circuit did not ask: a pale block in its colour whose name and price stay readable
    (the shared dim state only lowers the opacity, which leaves white text on a faint fill) */

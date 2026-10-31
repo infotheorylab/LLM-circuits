@@ -1,0 +1,44 @@
+/* fig-calibration: reliability of LMCircuit and of majority voting (assets/fig-calibration.js).
+   Tabs, task line and legend as on the results chart. */
+
+[data-fig="calib"] .fig-svg svg { max-height: none; }
+[data-fig="calib"] .fig-head { align-items: flex-start; margin-bottom: 0; }
+[data-fig="calib"] .fig-head .mini-btn { margin-top: 4px; flex: none; }
+[data-fig="calib"] .cb-ui { margin: 0 0 10px; }
+[data-fig="calib"] .cb-tabs { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+[data-fig="calib"] .cb-tabs button { font: 500 14.5px/1.2 var(--font-body); color: var(--ink-2); background: var(--paper-hi); border: 1px solid var(--line-2); border-radius: 999px; padding: 7px 15px; cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease; }
+[data-fig="calib"] .cb-tabs button:hover { border-color: var(--accent); color: var(--ink); }
+[data-fig="calib"] .cb-tabs button[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
+[data-fig="calib"] .cb-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-fig="calib"] .cb-sub { margin: 12px 0 0; font-size: 15.5px; line-height: 1.45; color: var(--ink-2); }
+[data-fig="calib"] .cb-sub b { color: var(--ink); font-weight: 600; margin-right: 8px; }
+[data-fig="calib"] .cb-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 22px; margin-top: 8px; font-size: 14px; color: var(--ink-2); line-height: 1.4; }
+[data-fig="calib"] .cb-li { display: inline-flex; align-items: center; gap: 8px; }
+[data-fig="calib"] .cb-li[data-s="lm"] { color: var(--ink); font-weight: 600; }
+[data-fig="calib"] .cb-key { width: 28px; height: 16px; flex: none; overflow: visible; }
+[data-fig="calib"] .cb-key .k-lm { stroke: var(--belief); stroke-width: 3; stroke-linecap: round; }
+[data-fig="calib"] .cb-key .k-lm-dot { fill: var(--belief); stroke: var(--surface); stroke-width: 1.5; }
+[data-fig="calib"] .cb-key .k-maj-l { stroke: var(--ink-2); stroke-width: 1.6; stroke-linecap: round; }
+[data-fig="calib"] .cb-key .k-maj { fill: var(--ink-2); stroke: var(--surface); stroke-width: 1.5; }
+[data-fig="calib"] .cb-key .k-ref { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 4; }
+
+/* the chart */
+[data-fig="calib"] .cb-grid { stroke: var(--line); stroke-width: 1; }
+[data-fig="calib"] .cb-axis { stroke: var(--line-2); stroke-width: 1; }
+[data-fig="calib"] .cb-tick { font-size: 14px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+[data-fig="calib"] .cb-axt { font-size: 14.5px; fill: var(--ink-2); }
+[data-fig="calib"] .cb-ref { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 5; }
+[data-fig="calib"] .cb-mv-l { fill: none; stroke: var(--ink-2); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+[data-fig="calib"] .cb-mv-s { fill: var(--ink-2); stroke: var(--surface); stroke-width: 2; }
+[data-fig="calib"] .cb-lm-l { fill: none; stroke: var(--belief); stroke-width: 3.2; stroke-linejoin: round; stroke-linecap: round; }
+[data-fig="calib"] .cb-lm-d { fill: var(--belief); stroke: var(--surface); stroke-width: 2; }
+
+/* the two errors */
+[data-fig="calib"] .cb-st-k { font-family: var(--font-display); font-size: 17px; font-weight: 700; fill: var(--ink); }
+[data-fig="calib"] .cb-st-s { font-size: 14px; fill: var(--muted); }
+[data-fig="calib"] .cb-st-v { font-family: var(--font-display); font-size: 40px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+[data-fig="calib"] .cb-st-row.lm .cb-st-v { fill: var(--belief-ink); }
+[data-fig="calib"] .cb-st-row.mv .cb-st-v { fill: var(--ink-2); }
+[data-fig="calib"] .cb-st-n { font-size: 14.5px; fill: var(--ink-2); }
+[data-fig="calib"] .cb-st-row.lm .cb-st-n { font-weight: 600; fill: var(--ink); }
+[data-fig="calib"] .cb-err { font-size: 15px; fill: var(--alert); }
